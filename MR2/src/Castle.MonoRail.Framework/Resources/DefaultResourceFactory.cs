@@ -96,7 +96,7 @@ namespace Castle.MonoRail.Framework.Resources
 				return CultureInfo.CreateSpecificCulture(name);
 			}
 
-			return CultureInfo.CurrentCulture;
+			return CultureInfo.CurrentUICulture;
 		}
 
 		/// <summary>
