@@ -103,7 +103,7 @@ namespace Castle.MonoRail.ActiveRecordSupport.Pagination
 			{
 				var criteria = BuildCriteria(session);
 
-				return criteria.List().Count;
+				return CriteriaTransformer.TransformToRowCount(criteria).UniqueResult<int>();
 			}
 			finally
 			{
