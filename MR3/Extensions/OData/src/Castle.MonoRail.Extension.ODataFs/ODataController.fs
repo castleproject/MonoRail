@@ -61,11 +61,11 @@ namespace Castle.MonoRail
             // a better implementation would "consume" the items used, taking them off the list
             let tryResolveParamValue (paramType:Type) isCollection (parameters:IList<Type * obj>) = 
                 let entryType =
+                    
                     if isCollection then
-                        let found = paramType.FindInterfaces(TypeFilter(fun t o -> (o :?> Type).IsAssignableFrom(t)), typedefof<IEnumerable<_>>) 
-                        if found.Length = 0
-                        then paramType
-                        else found.[0].GetGenericArguments().[0]
+                        match InternalUtils.getEnumerableElementType paramType with
+                        | Some t -> t
+                        | _ -> paramType
                     elif paramType.IsGenericType then
                         paramType.GetGenericArguments().[0]
                     else paramType

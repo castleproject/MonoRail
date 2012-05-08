@@ -123,9 +123,22 @@ module AtomSerialization =
 
                     // todo: add case for collection of complex types
 
-                    let innerinstance = prop.GetValue(instance)
-                    let inner = build_content_from_properties relResUri innerinstance otherRt item
-                    content.Add (prop.Name, prop.ResourceType.FullName, inner)
+                    match InternalUtils.getEnumerableElementType prop.ResourceType.InstanceType with
+                    | Some elementType -> 
+                        let innerContent = ContentDict()
+                        let elements = prop.GetValue(instance) :?> IEnumerable
+                        // start Properties
+                        for element in elements do
+                            let contentElement = build_content_from_properties relResUri element otherRt item
+                            innerContent.Add ("element", prop.ResourceType.FullName, contentElement)
+
+                        // end Properties
+                        content.Add (prop.Name, prop.ResourceType.FullName, innerContent)
+
+                    | _ -> 
+                        let innerinstance = prop.GetValue(instance)
+                        let inner = build_content_from_properties relResUri innerinstance otherRt item
+                        content.Add (prop.Name, prop.ResourceType.FullName, inner)
 
                 elif prop.IsOfKind ResourcePropertyKind.Primitive && not !skipContent then
                     let originalVal = (prop.GetValue(instance))

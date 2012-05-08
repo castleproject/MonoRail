@@ -79,6 +79,7 @@
     <Compile Include="SegmentProcessor.fs" />
     <Compile Include="ODataEntitySubControllerExecutor.fs" />
     <Compile Include="ODataController.fs" />
+    <Compile Include="Internal.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Castle.MonoRail\Castle.MonoRail.fsproj">
