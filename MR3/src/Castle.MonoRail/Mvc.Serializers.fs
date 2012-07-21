@@ -153,7 +153,8 @@ namespace Castle.MonoRail.Serialization
                     modelMetadata.SetValue (inst, childInst)
                 else 
                     // TODO: Support more collection types
-                    if typedefof<IList<_>>.MakeGenericType(property.PropertyType.GetGenericArguments()).IsAssignableFrom(property.PropertyType) then
+                    if typedefof<IList<_>>.MakeGenericType(property.PropertyType.GetGenericArguments()).IsAssignableFrom(property.PropertyType) ||
+                       typedefof<IEnumerable<_>>.MakeGenericType(property.PropertyType.GetGenericArguments()).IsAssignableFrom(property.PropertyType) then
                         let targetT = property.PropertyType.GetGenericArguments().[0]
                         let listType = typedefof<List<_>>.MakeGenericType( [|targetT|] )
                         childInst <- Activator.CreateInstance listType

@@ -137,7 +137,18 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                         let model = serializer.Deserialize(name, contentType, serializationCtx, DataAnnotationsModelMetadataProvider())
                         if paramType = modelType 
                         then value <- model
-                        else value <- Activator.CreateInstance(paramType, [|model|])
+                        else 
+                            // TODO: Support more collection types
+                            if typedefof<IList<_>>.MakeGenericType(paramType.GetGenericArguments()).IsAssignableFrom(paramType) || 
+                               typedefof<IEnumerable<_>>.MakeGenericType(paramType.GetGenericArguments()).IsAssignableFrom(paramType) then
+                                let targetT = paramType.GetGenericArguments().[0]
+                                let listType = typedefof<List<_>>.MakeGenericType( [|targetT|] )
+                                if model <> null then
+                                    value <- Activator.CreateInstance(listType, [|model|])
+                                else
+                                    value <- Activator.CreateInstance listType
+                            else
+                                failwithf "Collection type not supported %s" (paramType.FullName)
 
                         true
                     else 
