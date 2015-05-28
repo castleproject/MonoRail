@@ -22,9 +22,11 @@ namespace Castle.MonoRail
     open Castle.MonoRail.Hosting.Mvc
     open Castle.MonoRail.ViewEngines
     open Castle.MonoRail.Serialization
+    open Castle.MonoRail.Hosting.Mvc.Typed
 
     [<Interface;AllowNullLiteral>]
     type public IServiceRegistry =
+        abstract member LifetimeItems : Dictionary<string,obj> with get
         abstract member ViewEngines : IViewEngine seq with get
         abstract member ViewFolderLayout : IViewFolderLayout
         abstract member ViewRendererService : ViewRendererService
@@ -34,10 +36,10 @@ namespace Castle.MonoRail
         abstract member ViewComponentExecutor : ViewComponentExecutor
         abstract member ModelMetadataProvider : ModelMetadataProvider
         // abstract member ModelValidationMetadataProvider : ModelValidationMetadataProvider
-        // abstract member Get : service:'T -> 'T
-        // abstract member GetAll : service:'T -> 'T seq
         abstract member ControllerProvider : ControllerProviderAggregator
         abstract member ControllerExecutorProvider : ControllerExecutorProviderAggregator
-
+        abstract member ControllerDescriptorBuilder : TypedControllerDescriptorBuilder
+        // abstract member Get : service:'T -> 'T
+        // abstract member GetAll : service:'T -> 'T seq
         abstract member SatisfyImports : instance:obj -> unit
 

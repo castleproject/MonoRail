@@ -9,10 +9,17 @@
 	{
 		private Server _server;
 
+		protected BaseServerTest()
+		{
+			WebSiteFolder = "WebSiteForIntegration";
+		}
+
 		public Server Server
 		{
 			get { return _server; }
 		}
+
+		public string WebSiteFolder { get; set; }
 
 		protected virtual int Port { get { return 1302; } }
 		protected virtual string AppPath { get { return "/";  } }
@@ -48,7 +55,7 @@
 				else break;
 			}
 
-			_server = new Server(this.Port, this.AppPath, Path.Combine(dir.FullName, "WebSiteForIntegration"), false, true);
+			_server = new Server(this.Port, this.AppPath, Path.Combine(dir.FullName, this.WebSiteFolder), false, true);
 			_server.Start();
 		}
 

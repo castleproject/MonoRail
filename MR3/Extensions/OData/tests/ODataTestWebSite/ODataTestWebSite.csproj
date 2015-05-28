@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B0D83F48-B4B4-4F6B-867F-B9D91FAE7DAD}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ODataTestWebSite</RootNamespace>
+    <AssemblyName>ODataTestWebSite</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <UseIISExpress>false</UseIISExpress>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.EnterpriseServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\css\bootstrap-responsive.css" />
+    <Content Include="Content\css\bootstrap-responsive.min.css" />
+    <Content Include="Content\css\bootstrap.css" />
+    <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\img\glyphicons-halflings-white.png" />
+    <Content Include="Content\img\glyphicons-halflings.png" />
+    <Content Include="Content\js\bootstrap.js" />
+    <Content Include="Content\js\bootstrap.min.js" />
+    <Content Include="datajs-1.0.2.js" />
+    <Content Include="datajs-1.0.2.min.js" />
+    <Content Include="Generated\GeneratedRoutes.js" />
+    <Content Include="Global.asax" />
+    <Content Include="index.html" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controllers\AggRootModel\RootModelController.cs" />
+    <Compile Include="Controllers\AggRootModel\BranchRepositoryController.cs" />
+    <Compile Include="Controllers\AggRootModel\CodeRepositoryModel.cs" />
+    <Compile Include="Controllers\AggRootModel\CodeRepositoryController.cs" />
+    <Compile Include="Controllers\AggRootModel\Model.cs" />
+    <Compile Include="Controllers\AggRootModel\RevisionRepositorySubController.cs" />
+    <Compile Include="Controllers\HierarchicalModel\HierarchicalModelController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ModelWithRefs\CodeRepositoryModel.cs" />
+    <Compile Include="Controllers\ModelWithRefs\Model.cs" />
+    <Compile Include="Controllers\ModelWithRefs\RepoController.cs" />
+    <Compile Include="Controllers\SingleEntitySet\SingleEntitySetModelController.cs" />
+    <Compile Include="Generated\GeneratedRoutes.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Castle.MonoRail.ViewEngines.Blade\Castle.MonoRail.ViewEngines.Blade.fsproj">
+      <Project>{53C04B7D-F909-406B-9B0D-BB72CE68E646}</Project>
+      <Name>Castle.MonoRail.ViewEngines.Blade</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\src\Castle.MonoRail\Castle.MonoRail.fsproj">
+      <Project>{8C35651E-A56E-4771-95CA-E312AA318538}</Project>
+      <Name>Castle.MonoRail</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\3rd\odata\System.Data.OData.csproj">
+      <Project>{34B74905-DF66-4BF7-958B-62C50ED1203C}</Project>
+      <Name>System.Data.OData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\src\Castle.Blade\src\Castle.Blade.Web\Castle.Blade.Web.fsproj">
+      <Project>{8DF9E981-2558-4EFD-A455-5459F36A9B03}</Project>
+      <Name>Castle.Blade.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\src\Castle.Blade\src\Castle.Blade\Castle.Blade.fsproj">
+      <Project>{51FC792E-69D3-41C4-937E-4ABAC181D918}</Project>
+      <Name>Castle.Blade</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Castle.MonoRail.Extension.ODataFs\Castle.MonoRail.Extension.OData.fsproj">
+      <Project>{702F84E9-CAD2-4B64-A4C5-F915BAD4A729}</Project>
+      <Name>Castle.MonoRail.Extension.OData</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\default.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\coderepository\view.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\coderepository\new.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\branchrepository\view.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\home\index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\branchrepository\new.cshtml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>2740</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>rem $(SolutionDir)build\mrtypegen.exe -b:$(TargetPath) -t:$(ProjectDir)Generated</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -38,8 +38,8 @@ namespace Castle.MonoRail.Routing
                     context.Items.[Constants.MR_Routing_Key] <- route_match
                     let handlerMediator = route_match.Route.HandlerMediator
                     let httpHandler = handlerMediator.GetHandler(httpRequest, route_match)
-                    Assertions.IsNotNull httpHandler "httpHandler"
-                    context.RemapHandler httpHandler
+                    if httpHandler <> null then
+                        context.RemapHandler httpHandler
 
         let OnPostResolveRequestCache_Handler = 
             new EventHandler( fun obj args -> OnPostResolveRequestCache(obj, args) )

@@ -22,6 +22,7 @@ namespace Castle.MonoRail.Tests
     using Castle.MonoRail.Serialization;
     using Castle.MonoRail.ViewEngines;
 	using Hosting.Mvc;
+	using Hosting.Mvc.Typed;
 
 	public class StubServiceRegistry : IServiceRegistry
     {
@@ -33,18 +34,26 @@ namespace Castle.MonoRail.Tests
         public ContentNegotiator _contentNegotiator;
         public ViewComponentExecutor _viewComponentExecutor;
         public ModelMetadataProvider _modelMetadataProvider;
-
+		private readonly Dictionary<string, object> _lifetime = new Dictionary<string, object>();
 
         public StubServiceRegistry()
         {
             _viewFolderLayout = new DefaultViewFolderLayout("");
             _viewRendererService = new ViewRendererService();
             _viewRendererService.ViewFolderLayout = _viewFolderLayout;
+
+			this.ControllerDescriptorBuilder = new TypedControllerDescriptorBuilder();
+			this.ControllerProvider = new ControllerProviderAggregator();
         }
 
         #region IServiceRegistry
 
-        public IEnumerable<IViewEngine> ViewEngines
+		public Dictionary<string, object> LifetimeItems
+		{
+			get { return _lifetime; }
+		}
+
+		public IEnumerable<IViewEngine> ViewEngines
         {
             get { return _viewEngines; }
         }
@@ -89,15 +98,9 @@ namespace Castle.MonoRail.Tests
     		throw new NotImplementedException();
     	}
 
-		public ControllerProviderAggregator ControllerProvider
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public ControllerExecutorProviderAggregator ControllerExecutorProvider
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public ControllerProviderAggregator ControllerProvider { get; set; }
+		public ControllerExecutorProviderAggregator ControllerExecutorProvider { get; set; }
+		public TypedControllerDescriptorBuilder ControllerDescriptorBuilder { get; set; }
 
 		#endregion
     }

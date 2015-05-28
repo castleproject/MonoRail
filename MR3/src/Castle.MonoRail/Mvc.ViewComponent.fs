@@ -75,13 +75,16 @@ namespace Castle.MonoRail
         member this.ViewRendererService
             with get () = _viewRendererSvc and set(v) = _viewRendererSvc <- v 
 
-        member this.Execute<'tvc when 'tvc :> IViewComponent>(viewComponentName, context, configurer:Action<'tvc>) = 
+        member this.Execute<'tvc when 'tvc :> IViewComponent>(viewComponentName, context:HttpContextBase, configurer:Action<'tvc>) = 
             let spec = build_spec viewComponentName
-            let prototype = (!_controllerProviderAggregator).CreateController spec
+            let prototypeFunc = (!_controllerProviderAggregator).CreateController spec
 
-            if prototype = null then ExceptionBuilder.RaiseViewComponentNotFound()
+            if prototypeFunc = null then ExceptionBuilder.RaiseViewComponentNotFound()
+
+            let route = context.Items.[Constants.MR_Routing_Key] :?> Castle.MonoRail.Routing.RouteMatch
             
-            let viewComponent = prototype.Instance :?> IViewComponent
+            let creationCtx = ControllerCreationContext(route, context)
+            let viewComponent = prototypeFunc.Invoke(creationCtx).Instance :?> IViewComponent
 
             if configurer <> null then configurer.Invoke(viewComponent :?> 'tvc)
             

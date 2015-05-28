@@ -18,6 +18,49 @@
 
                 return parent;
             }
+            var HttpMethodRestrictions = {
+                
+                Index: {
+                    get: function (params) {
+                        return vpath + (params == undefined ? '/HttpMethodRestrictions' : '/HttpMethodRestrictions?' + jQuery.param(params));
+                    },
+                    post: function() { return vpath + '/HttpMethodRestrictions'; },
+                    del: function() { return vpath + '/HttpMethodRestrictions'; },
+                    put: function() { return vpath + '/HttpMethodRestrictions'; }
+                },
+
+                Index2: {
+                    get: function (params) {
+                        return vpath + (params == undefined ? '/HttpMethodRestrictions/Index2' : '/HttpMethodRestrictions/Index2?' + jQuery.param(params));
+                    },
+                    post: function() { return vpath + '/HttpMethodRestrictions/Index2'; },
+                    del: function() { return vpath + '/HttpMethodRestrictions/Index2'; },
+                    put: function() { return vpath + '/HttpMethodRestrictions/Index2'; }
+                },
+
+                Index3: {
+                    get: function (params) {
+                        return vpath + (params == undefined ? '/HttpMethodRestrictions/Index3' : '/HttpMethodRestrictions/Index3?' + jQuery.param(params));
+                    },
+                    post: function() { return vpath + '/HttpMethodRestrictions/Index3'; },
+                    del: function() { return vpath + '/HttpMethodRestrictions/Index3'; },
+                    put: function() { return vpath + '/HttpMethodRestrictions/Index3'; }
+                },
+
+                Index4: {
+                    get: function (params) {
+                        return vpath + (params == undefined ? '/HttpMethodRestrictions/Index4' : '/HttpMethodRestrictions/Index4?' + jQuery.param(params));
+                    },
+                    post: function() { return vpath + '/HttpMethodRestrictions/Index4'; },
+                    del: function() { return vpath + '/HttpMethodRestrictions/Index4'; },
+                    put: function() { return vpath + '/HttpMethodRestrictions/Index4'; }
+                }
+            };
+        
+            var ns = appendNamespace('WebSiteForIntegration.Controllers');
+
+            ns.HttpMethodRestrictions = HttpMethodRestrictions;
+        
             var Root = {
                 
                 ActionWithRedirect: {

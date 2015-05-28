@@ -1,24 +1,45 @@
-﻿
+﻿//  Copyright 2004-2012 Castle Project - http://www.castleproject.org/
+//  Hamilton Verissimo de Oliveira and individual contributors as indicated. 
+//  See the committers.txt/contributors.txt in the distribution for a 
+//  full listing of individual contributors.
+// 
+//  This is free software; you can redistribute it and/or modify it
+//  under the terms of the GNU Lesser General Public License as
+//  published by the Free Software Foundation; either version 3 of
+//  the License, or (at your option) any later version.
+// 
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this software; if not, write to the Free
+//  Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
 namespace Castle.MonoRail.Extension.OData
 
 open System
 open System.Collections
+open System.Collections.Specialized
 open System.Collections.Generic
 open System.Data.OData
 open System.Data.Services.Providers
 open System.Linq
+open System.Linq.Expressions
 open System.Web
 open Castle.MonoRail
 
-type EntityDetails = {
+type EntityAccessInfo = {
+    RawPathSegment : string;
+    Uri : Uri;
     mutable ManyResult : IQueryable;
     mutable SingleResult : obj;
+    ResSet : ResourceSet;
     ResourceType : ResourceType;
     Name : string; 
-    Key : string
+    Key : string;
 }
 
-type PropertyAccessDetails = {
+type PropertyAccessInfo = {
+    RawPathSegment : string;
+    Uri : Uri;
     mutable ManyResult : IEnumerable;
     mutable SingleResult : obj;
     ResourceType : ResourceType; 
@@ -27,31 +48,169 @@ type PropertyAccessDetails = {
 }
 
 type MetaSegment = 
+    | Nothing
     | Metadata 
-    | Batch
     | Count
     | Value
-    | Links of UriSegment[]
+    // | Links // of UriSegment[]
+    | Batch
+
+and MetaQuerySegment = 
+    | Nothing
     | Format of string
     | Skip of int
     | Top of int
-    | OrderBy of string[]
-    | Expand of string[]
-    | Select of string[]
-    | InlineCount 
+    | OrderBy of string
+    | Expand of string
+    | Select of string
+    | InlineCount of string
     | Filter of string
  
 and UriSegment = 
-    | Meta of MetaSegment 
-    | ServiceDirectory 
-    | EntitySet of EntityDetails
-    | EntityType of EntityDetails
-    | ComplexType of PropertyAccessDetails
-    | PropertyAccessSingle of PropertyAccessDetails
-    | PropertyAccessCollection of PropertyAccessDetails
-    | ServiceOperation
+    // | Links
     | Nothing
+    | ServiceDirectory 
+    | EntitySet of EntityAccessInfo
+    | EntityType of EntityAccessInfo
+    | ComplexType of PropertyAccessInfo
+    | PropertyAccessSingle of PropertyAccessInfo
+    | PropertyAccessCollection of PropertyAccessInfo
+    | RootServiceOperation 
+    | ActionOperation of ControllerActionOperation
 
+
+(*
+    Uri Syntax spec. See ms-odata.pdf, section 2.2.3.1
+    ==================================================
+ 
+serviceRoot = *( "/" segment-nz ) ; section 3.3 of [RFC3986]
+                                  ; segment-nz = the non empty sequence of characters
+                                  ; outside the set of URI reserved
+                                  ; characters as specified in [RFC3986]
+
+pathPrefix = *( "/" segment-nz )  ; zero or more URI path segments
+
+resourcePath = "/"
+                ( ([entityContainer "."] entitySet)
+                  / serviceOperation-collEt
+                    [ paren ] [ navPath ] [ count ]
+                )
+                / serviceOperation
+
+paren = "()"
+
+serviceOperation = serviceOperation-et
+                   / serviceOperation-collCt
+                   / serviceOperation-ct
+                   / serviceOperation-collPrim
+                   / serviceOperation-prim [ value ]
+
+count = "/$count"
+
+navPath         = "("keyPredicate")" [navPath-options]
+
+navPath-options = [ navPath-np / propertyPath / propertyPath-ct / value ]
+
+navPath-np = "/"
+             ( ("$links" / entityNavProperty )
+               / (entityNavProperty-es [ paren ] [ navPath ])
+               / (entityNavProperty-et [ navPath-options ])
+             )
+
+entityNavProperty = (entityNavProperty-es [ paren ])
+                    / entityNavProperty-et
+
+propertyPath =      "/" entityProperty [ value ]
+propertyPath-ct =   1 * ("/" entityComplexProperty) [ propertyPath ]
+
+keyPredicate = keyPredicate-single
+               / keyPredicate-cmplx
+
+keyPredicate-single = 1*DIGIT ; section B.1 of [RFC5234]
+                      / ([1*unreserved] "’" 1*unreserved "’") ; section 2.3 of [RFC3986]
+                      / 1*(HEXDIG HEXDIG)) ; section B.1 of [RFC5234]
+
+keyPredicate-cmplx = entityProperty "=" keyPredicate-single
+                     ["," keyPredicate-cmplx]
+
+value = "/$value"
+
+queryOptions = sysQueryOption ; see section 2.2.3.6.1
+                / customQueryOption ; section 2.2.3.6.2
+                / serviceOpParam ; see section 2.2.3.6.3
+                *("&"(sysQueryOption / serviceOpParam / customQueryOption))
+
+sysQueryOption = expandQueryOp
+                / filterQueryOp
+                / orderbyQueryOp
+                / skipQueryOp
+                / topQueryOp
+                / formatQueryOp
+                / countQueryOp
+                / selectQueryOp
+                / skiptokenQueryOp
+
+customQueryOption = *pchar ; section 3.3 of [RFC3986]
+expandQueryOp = ; see section 2.2.3.6.1.3
+filterQueryOp = ; see section 2.2.3.6.1.4
+orderbyQueryOp = ; see section 2.2.3.6.1.6
+skipQueryOp = ; see section 2.2.3.6.1.7
+serviceOpParam = ; see section 2.2.3.6.3
+topQueryOp = ; see section 2.2.3.6.1.8
+formatQueryOp = ; see section 2.2.3.6.1.5
+countQueryOp = ; see section 2.2.3.6.1.10
+selectQueryOp = ; see section 2.2.3.6.1.11
+skiptokenQueryOp = ; see section 2.2.3.6.1.9
+
+;Note: The semantic meaning, relationship to Entity Data Model
+; (EDM) constructs and additional URI construction
+; constraints for the following grammar rules are further
+; defined in (section 2.2.3.4) and (section 2.2.3.5)
+; See [MC-CSDL] for further scoping rules regarding the value
+; of each of the rules below
+
+entityContainer = *pchar ; section 3.3 of [RFC3986]
+                        ; the name of an Entity Container in the EDM model
+
+entitySet = *pchar ; section 3.3 of [RFC3986]
+                    ; the name of an Entity Set in the EDM model
+
+entityType = *pchar ; section 3.3 of [RFC3986]
+                    ; the name of an Entity Type in the EDM model
+
+entityProperty = *pchar ; section 3.3 of [RFC3986]
+                        ; the name of a property (of type EDMSimpleType) on an
+                        ; Entity Type in the EDM
+                        ; model associated with the data service
+
+entityComplexProperty = *pchar ; section 3.3 of [RFC3986]
+                                ; the name of a property (of type ComplexType) on an
+                                ; Entity Type in the EDM
+                                ; model associated with the data service
+
+entityNavProperty-es= *pchar ; section 3.3 of [RFC3986]
+                            ; the name of a Navigation Property on an Entity Type in
+                            ; the EDM model associated with the data service. The
+                            ; Navigation Property MUST identify an Entity Set.
+
+entityNavProperty-et= *pchar ; section 3.3 of [RFC3986]
+                            ; the name of a Navigation Property on an Entity Type
+                            ; in the EDM model associated with the data service.
+                            ; The Navigation Property MUST identify an entity.
+
+serviceOperation-collEt = *pchar ; section 3.3 of [RFC3986]
+                                 ; the name of a Function Import in the EDM model which returns a
+                                 ; collection of entities from the same Entity Set
+
+serviceOperation-et = *pchar ; section 3.3 of [RFC3986]
+                             ; the name of a Function Import which returns a single Entity
+                             ; Type instance
+
+serviceOperation-collCt = *pchar ; section 3.3 of [RFC3986]
+                                 ; the name of a Function Import which returns a collection of
+                                 ; Complex Type [MC-CSDL] instances. Each member of the
+                                 ; collection is of the same type.
+*)
 
 module SegmentParser =
     begin
@@ -93,11 +252,16 @@ module SegmentParser =
             then Some(arg)
             else None
 
-        let (|RootOperationAccess|_|) (model:ODataModel) (arg:string)  =  
+        let (|RootOperationAccess|_|) (model:ODataModel) (arg:string) =  
             None
 
-        let (|OperationAccess|_|) (rt:ResourceType option) (arg:string)  =  
-            None
+        let (|OperationAccess|_|) (model:ODataModel) (rt:ResourceType option) (name:string) =  
+            if rt.IsNone then None
+            else
+                let op = model.GetNestedOperation(rt.Value, name)
+                if op = null
+                then None
+                else Some(op)
 
         let (|PropertyAccess|_|) (rt:ResourceType option) (arg:string) = 
             let name, key = 
@@ -114,7 +278,7 @@ module SegmentParser =
         let (|EntityTypeAccess|_|) (model:ODataModel) (arg:string)  =  
             match arg with 
             | SegmentWithKey (name, key) -> 
-                match model.GetResourceType(name) with 
+                match model.GetResourceSet(name) with 
                 | Some rt -> Some(rt, name, key)
                 | _ -> None
             | _ -> None
@@ -122,60 +286,147 @@ module SegmentParser =
         let (|EntitySetAccess|_|) (model:ODataModel) (arg:string)  =  
             match arg with 
             | SegmentWithoutKey name -> 
-                match model.GetResourceType(name) with 
-                | Some rt -> Some(rt, name)
+                match model.GetResourceSet(name) with 
+                | Some rs -> Some(rs, name)
                 | _ -> None
             | _ -> None
-            
+
+        let internal process_first (firstSeg:string) model (svcUri:Uri) (resourceType:Ref<ResourceType>) (meta:Ref<MetaSegment>) = 
+            match firstSeg with 
+            | "" -> 
+                UriSegment.ServiceDirectory
+            | Meta m -> // todo: semantic validation
+                Diagnostics.Debug.Assert (!meta = MetaSegment.Nothing)
+                meta := m
+                UriSegment.Nothing
+                
+            | RootOperationAccess model o -> 
+                UriSegment.RootServiceOperation
+
+            // todo: support for:
+            // | OperationAccess within ResourceType
+                
+            | EntitySetAccess model (rs, name) -> 
+                resourceType := rs.ResourceType 
+                UriSegment.EntitySet({ Uri=Uri(svcUri, name); RawPathSegment=firstSeg; ResSet = rs; 
+                                        ResourceType = !resourceType; Name = name; Key = null; 
+                                        SingleResult = null; ManyResult = null; })
+                
+            | EntityTypeAccess model (rs, name, key) -> 
+                resourceType := rs.ResourceType
+                UriSegment.EntityType({ Uri=Uri(svcUri, firstSeg); RawPathSegment=firstSeg; ResSet = rs; 
+                                        ResourceType = !resourceType; Name = name; Key = key; 
+                                        SingleResult = null; ManyResult = null; })
+                
+            | _ -> raise(HttpException(400, "First segment of uri could not be parsed"))
+
+
+        let internal build_segment_for_property kind (baseUri:Uri) (rawSegment:string) (prop:ResourceProperty) key = 
+            match kind with 
+            | ResourcePropertyKind.Primitive -> 
+                // todo: assert key is null
+                let info = { Uri=Uri(baseUri, rawSegment); RawPathSegment=rawSegment; ResourceType=prop.ResourceType; 
+                                Property=prop; Key = null; SingleResult = null; ManyResult = null }
+                UriSegment.PropertyAccessSingle(info)
+
+            | ResourcePropertyKind.ComplexType -> 
+                // todo: assert key is null
+                let info = { Uri=Uri(baseUri, rawSegment); RawPathSegment=rawSegment; ResourceType=prop.ResourceType; 
+                                Property=prop; Key = null; SingleResult = null; ManyResult = null }
+                UriSegment.ComplexType(info)
+
+            | ResourcePropertyKind.ResourceReference -> 
+                let info = { Uri=Uri(baseUri, rawSegment); RawPathSegment=rawSegment; ResourceType=prop.ResourceType; 
+                                Property=prop; Key = key; SingleResult = null; ManyResult = null }
+                UriSegment.PropertyAccessSingle(info)
+
+            | ResourcePropertyKind.ResourceSetReference -> 
+                if key = null then
+                    let info = { Uri=Uri(baseUri, rawSegment); RawPathSegment=rawSegment; ResourceType=prop.ResourceType; 
+                                    Property=prop; Key = null; SingleResult = null; ManyResult = null }
+                    UriSegment.PropertyAccessCollection(info)
+                else
+                    let info = { Uri=Uri(baseUri, rawSegment); RawPathSegment=rawSegment; ResourceType=prop.ResourceType; 
+                                    Property=prop; Key = key; SingleResult = null; ManyResult = null }
+                    UriSegment.PropertyAccessSingle(info)
+
+            | _ -> raise(HttpException(500, "Unsupported property kind for segment "))
+
+        let partition_qs_parameters (qs:NameValueCollection) = 
+            let odataParams, ordinaryParams = 
+                let odata, ordinary =
+                    qs.AllKeys 
+                    |> List.ofSeq |> List.partition (fun k -> k.StartsWith("$", StringComparison.Ordinal))
+                let ordinaryParams = NameValueCollection(StringComparer.OrdinalIgnoreCase)
+                ordinary |> List.iter (fun i -> ordinaryParams.[i] <- qs.[i])
+                let odataparms = NameValueCollection(StringComparer.OrdinalIgnoreCase)
+                odata    |> List.iter (fun i -> odataparms.[i] <- qs.[i])
+                odataparms, ordinary
+            odataParams, ordinaryParams
+
         // we also need to parse QS 
         // ex url/Suppliers?$filter=Address/City eq 'Redmond' 
-        let public parse(path:string, qs:string, model:ODataModel) : UriSegment[] = 
-            
-            let rec parse_segment (all:UriSegment list) (previous:UriSegment) (contextRT:ResourceType option) (rawSegments:string[]) (index:int) : UriSegment[] = 
+        let parse(path:string, qs:NameValueCollection, model:ODataModel, svcUri:Uri) : UriSegment[] * MetaSegment * MetaQuerySegment[] = 
+
+            let odataParams, ordinaryParams = partition_qs_parameters qs
+
+            // tracks the meta we will discover later
+            let meta = ref MetaSegment.Nothing
+
+            // tracks the last segment where (is a collection type = true)
+            let lastCollAccessSegment : Ref<UriSegment> = ref UriSegment.Nothing
+
+            // this rec function parses all segments but the first
+            let rec parse_segment (all:UriSegment list) (previous:UriSegment) 
+                                  (contextRT:ResourceType option) (rawSegments:string[]) (index:int) : UriSegment[] = 
                 
-                // check for empty is temporary, should find better solution
                 if index < rawSegments.Length && (rawSegments.[index] <> String.Empty && index <= rawSegments.Length - 1) then
 
                     let rawSegment = rawSegments.[index]
                     let resourceType : Ref<ResourceType> = ref null
+                    let baseUri = 
+                        match previous with 
+                        | UriSegment.EntitySet d 
+                        | UriSegment.EntityType d -> Uri(d.Uri.AbsoluteUri + "/")
+                        | UriSegment.PropertyAccessCollection d 
+                        | UriSegment.PropertyAccessSingle d -> Uri(d.Uri.AbsoluteUri + "/")
+                        | _ -> svcUri
 
                     let newSegment = 
                         match rawSegment with
                         | Meta m -> 
-                            // todo: semantic validation
-                            UriSegment.Meta(m)
-                        | OperationAccess contextRT o -> UriSegment.ServiceOperation
+                            // todo: semantic validation 
+                            // (e.g. at this point, $metadata is not accepted)
+                            Diagnostics.Debug.Assert (!meta = MetaSegment.Nothing)
+                            meta := m
+                            UriSegment.Nothing
+                        
+                        | OperationAccess model contextRT o -> 
+                            UriSegment.ActionOperation(o)
 
                         | PropertyAccess contextRT (prop, key) -> 
                             resourceType := prop.ResourceType
-
                             match prop.Kind with 
                             | ResourcePropKind kind -> 
-                                match kind with 
-                                | ResourcePropertyKind.Primitive -> 
-                                    // todo: assert key is null
-                                    UriSegment.PropertyAccessSingle({ ResourceType=prop.ResourceType; Property=prop; Key = null; SingleResult = null; ManyResult = null })
-
-                                | ResourcePropertyKind.ComplexType -> 
-                                    // todo: assert key is null
-                                    UriSegment.ComplexType({ ResourceType=prop.ResourceType; Property=prop; Key = null; SingleResult = null; ManyResult = null })
-
-                                | ResourcePropertyKind.ResourceReference -> 
-                                    UriSegment.PropertyAccessSingle({ ResourceType=prop.ResourceType; Property=prop; Key = key; SingleResult = null; ManyResult = null })
-
-                                | ResourcePropertyKind.ResourceSetReference -> 
-                                    if key = null then
-                                        UriSegment.PropertyAccessCollection({ ResourceType=prop.ResourceType; Property=prop; Key = null; SingleResult = null; ManyResult = null })
-                                    else
-                                        UriSegment.PropertyAccessSingle({ ResourceType=prop.ResourceType; Property=prop; Key = key; SingleResult = null; ManyResult = null })
-
-                                | _ -> raise(HttpException(500, "Unsupported property kind for segment "))
+                                build_segment_for_property kind baseUri rawSegment prop key
                             | _ -> raise(HttpException(500, "Unsupported property kind for segment "))
-                        | _ -> raise(HttpException(400, "Segment does not match a property or operation"))
 
-                    parse_segment (all @ [newSegment]) newSegment (if !resourceType <> null then Some(!resourceType) else None) rawSegments (index + 1)
-                else 
-                    all |> Array.ofList
+                        | _ -> raise(HttpException(400, "Segment does not match a property or operation"))
+                    
+                    match newSegment with 
+                    | UriSegment.EntitySet _ 
+                    | UriSegment.PropertyAccessCollection _ -> 
+                        lastCollAccessSegment := newSegment
+                    | _ -> ()                    
+
+                    let rt = if !resourceType <> null then Some(!resourceType) else None
+
+                    let newList = 
+                        all @ (if newSegment = UriSegment.Nothing then [] else [newSegment])
+
+                    parse_segment newList newSegment rt rawSegments (index + 1)
+                
+                else all |> Array.ofList
 
             let normalizedPath = 
                 if path.StartsWith("/", StringComparison.Ordinal) 
@@ -186,67 +437,31 @@ module SegmentParser =
             let firstSeg = rawSegments.[0]
             let resourceType : Ref<ResourceType> = ref null
 
-            let segment = 
-                match firstSeg with 
-                | "" -> 
-                    UriSegment.ServiceDirectory
-                | Meta m -> 
-                    // todo: semantic validation
-                    UriSegment.Meta(m)
-                | RootOperationAccess model o -> 
-                    UriSegment.ServiceOperation
-                | EntitySetAccess model (rt, name) -> 
-                    resourceType := rt 
-                    UriSegment.EntitySet({ ResourceType = rt; Name = name; Key = null; SingleResult = null; ManyResult = null })
-                | EntityTypeAccess model (rt, name, key) -> 
-                    resourceType := rt 
-                    UriSegment.EntityType({ ResourceType = rt; Name = name; Key = key; SingleResult = null; ManyResult = null })
-                | _ -> raise(HttpException(400, "First segment of uri could not be parsed"))
+            // first segment is a special situation
+            let segment = process_first firstSeg model svcUri resourceType meta
 
-            parse_segment [segment] segment (if !resourceType <> null then Some(!resourceType) else None) rawSegments 1 
+            // calls the parser
+            let uriSegments = parse_segment [segment] segment (if !resourceType <> null then Some(!resourceType) else None) rawSegments 1 
 
+            // process odata query parameters, if any
+            let metaQuerySegments = 
+                let list = List<MetaQuerySegment>()
+                for key in odataParams.Keys do
+                    let value = odataParams.[key]
+                    match key with 
+                    | "$filter"     -> MetaQuerySegment.Filter (value)
+                    | "$orderby"    -> MetaQuerySegment.OrderBy (value)
+                    | "$top"        -> MetaQuerySegment.Top (Int32.Parse(value))
+                    | "$skip"       -> MetaQuerySegment.Skip (Int32.Parse(value))
+                    | "$expand"     -> MetaQuerySegment.Expand (value)
+                    | "$format"     -> MetaQuerySegment.Format (value)
+                    | "$inlinecount"-> MetaQuerySegment.InlineCount (value)
+                    | "$select"     -> MetaQuerySegment.Select (value)
+                    | _ -> failwithf "special query parameter is not supported: %s (note that these parameters are case sensitive)" key
+                    |> list.Add 
+                list |> Array.ofSeq
 
-
-        (* 
-        http://services.odata.org/OData/OData.svc/Categories
-            Identifies all Categories Collection.
-            Is described by the Entity Set named "Categories" in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)
-            Identifies a single Category Entry with key value 1.
-            Is described by the Entity Type named "Categories" in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)/Name
-            Identifies the Name property of the Categories Entry with key value 1.
-            Is described by the Property named "Name" on the "Categories" Entity Type in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)/Products
-            Identifies the collection of Products associated with Category Entry with key value 1.
-            Is described by the Navigation Property named "Products" on the "Category" Entity Type in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)/Products/$count
-            Identifies the number of Product Entries associated with Category 1.
-            Is described by the Navigation Property named "Products" on the "Category" Entity Type in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City
-            Identifies the City of the Supplier for Product 1 which is associated with Category 1.
-            Is described by the Property named "City" on the "Address" Complex Type in the service metadata document.
-        http://services.odata.org/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City/$value
-            Same as the URI above, but identifies the "raw value" of the City property.
-        http://services.odata.org/OData/OData.svc/Categories(1)/$links/Products
-            Identifies the set of Products related to Category 1.
-            Is described by the Navigation Property named "Products" on the "Category" Entity Type in the associated service metadata document.
-        http://services.odata.org/OData/OData.svc/Products(1)/$links/Category
-            Identifies the Category related to Product 1.
-            Is described by the Navigation Property named "Category" on the "Product" Entity Type in the associated service metadata document.
-        *)
-
-
-// need to process segments from an endpoint
-// Example localhost/vpath/odata.svc/Products(1)/Categories
-
-// http://odata.research.microsoft.com/FAQ.aspx
-// http://services.odata.org/%28S%28zjtwckq5iumy0qno2wbf413y%29%29/OData/OData.svc/
-
-// http://odata.netflix.com/v2/Catalog/
-// http://odata.netflix.com/v2/Catalog/$metadata
-// http://odata.netflix.com/v2/Catalog/Movies
-
-// http://vancouverdataservice.cloudapp.net/v1/
+            uriSegments, !meta, metaQuerySegments
 
     end
+

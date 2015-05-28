@@ -50,10 +50,15 @@ namespace Castle.MonoRail.Extension.Windsor
 
     module WindsorUtil = 
         begin
-            let internal BuildArguments (context:HttpContextBase) : Dictionary<string, obj> = 
+            let internal BuildArguments (context:ControllerCreationContext) : Dictionary<string, obj> = 
                 let args = Dictionary<string, obj>()
-                args.Add("context", context)
-                args.Add("principal", lazy (context.User))
+                let httpctx = context.HttpContext
+                if httpctx <> null then
+                    args.Add("context", httpctx)
+                    args.Add("session", httpctx.Session)
+                    args.Add("request", httpctx.Request)
+                    args.Add("respose", httpctx.Response)
+                    args.Add("principal", lazy (httpctx.User))
                 args
         end
 
@@ -61,7 +66,7 @@ namespace Castle.MonoRail.Extension.Windsor
     type WindsorControllerProvider() =
         inherit ControllerProvider()
 
-        let _desc_builder : Ref<ControllerDescriptorBuilder> = ref null
+        let _desc_builder : Ref<TypedControllerDescriptorBuilder> = ref null
         let _container : Ref<IWindsorContainer> = ref null
 
         let normalize_name (cname:string) =
@@ -81,6 +86,11 @@ namespace Castle.MonoRail.Extension.Windsor
                    |> Array.iter (fun h -> (set.Add (h.ComponentModel.Name, h.ComponentModel.Implementation) ))
                    set :> IDictionary<_,_> )
 
+        let delayed_instantiation (ctx:ControllerCreationContext) (container:IWindsorContainer) (resolver) = 
+            let instance, cType = resolver(ctx)
+            let desc = (!_desc_builder).Build(cType)
+            TypedControllerPrototype(desc, instance)
+
         [<Import>]
         member this.ControllerDescriptorBuilder with get() = !_desc_builder and set(v) = _desc_builder := v
  
@@ -96,17 +106,19 @@ namespace Castle.MonoRail.Extension.Windsor
                 let spec = spec |> box :?> NamedControllerCreationSpec
                 let key = (normalize_name spec.CombinedName).ToLowerInvariant()
                 if container.Kernel.HasComponent(key) then
-                    let instance = container.Resolve<obj>(key) //, WindsorUtil.BuildArguments(context))
-                    let cType = instance.GetType()
-                    let desc = (!_desc_builder).Build(cType)
-                    upcast TypedControllerPrototype(desc, instance)
+                    let resolver (context) = 
+                        let instance = container.Resolve<obj>(key, WindsorUtil.BuildArguments(context))
+                        let cType = instance.GetType()
+                        (instance, cType)
+                    Func<_,_>(fun creationCtx -> upcast (delayed_instantiation creationCtx container resolver ) )
                 else null
             else 
                 let cType = spec.Match (_entries.Force())
                 if cType <> null then
-                    let instance = container.Resolve(cType)
-                    let desc = (!_desc_builder).Build(cType)
-                    upcast TypedControllerPrototype(desc, instance)
+                    let resolver (context) = 
+                        let instance = container.Resolve(cType, WindsorUtil.BuildArguments(context))
+                        (instance, cType)
+                    Func<_,_>(fun creationCtx -> upcast (delayed_instantiation creationCtx container resolver ) )
                 else null
                 
             

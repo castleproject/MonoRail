@@ -32,7 +32,9 @@
 		{
 			return from.Provide<TFilter>(
 				_activator,
-				new ActionExecutionContext(new FakeActionDescriptor("index"), new ControllerPrototype(new object()), new StubHttpContext(), null));
+				new ActionExecutionContext(
+						new FakeActionDescriptor("index"), 
+						new TypedControllerPrototype(new TypedControllerDescriptor(typeof(object)), new object()), new StubHttpContext(), null));
 		}
 
 		[Test]

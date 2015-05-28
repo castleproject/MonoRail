@@ -88,8 +88,8 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
         MethodInfoActionDescriptor(methodInfo:MethodInfo, controllerDesc) = 
             inherit ControllerActionDescriptor(methodInfo.Name, controllerDesc)
             let mutable _lambda = Lazy<Func<obj,obj[],obj>>()
-            let mutable _verblessName : string = null
-            let _allowedVerbs = List<string>()
+            let mutable _canonicalName : string = null
+            let _allowedVerbs = HashSet<string>()
 
             do 
                 _lambda <- lazy ( 
@@ -126,20 +126,30 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                             Expression.Lambda<Func<obj,obj[],obj>>(call, lambda_args).Compile()
                     )
                 
-                _allowedVerbs.AddRange(methodInfo.GetCustomAttributes(typeof<HttpMethodAttribute>, false) 
-                                            |> Seq.cast<HttpMethodAttribute> 
-                                            |> Seq.map (fun attr -> attr.Verb.ToString().ToUpperInvariant()))
+                let httpAtt = 
+                    let items = methodInfo.GetCustomAttributes(typeof<HttpMethodAttribute>, false) 
+                                |> Seq.cast<HttpMethodAttribute>
+                    if Seq.isEmpty items 
+                    then null
+                    else Seq.head items
 
+                if httpAtt <> null then
+                    let add_to_allow_list_if_defined (verb) = 
+                        if httpAtt.Verb.HasFlag verb then
+                            _allowedVerbs.Add ( verb.ToString().ToUpperInvariant() ) |> ignore
+                    Enumerable.Cast<HttpVerb>( Enum.GetValues(typeof<HttpVerb>) ) 
+                    |> Seq.iter add_to_allow_list_if_defined
+                    
                 let declared_verb = 
                     (Enum.GetNames(typeof<HttpVerb>) 
-                        |> Seq.filter (fun v -> methodInfo.Name.StartsWith(v + "_"))).FirstOrDefault() 
+                        |> Seq.filter (fun v -> methodInfo.Name.StartsWith(v + "_", StringComparison.OrdinalIgnoreCase))).FirstOrDefault() 
 
                 if not (String.IsNullOrEmpty(declared_verb)) then
-                    _verblessName <- methodInfo.Name.Replace(declared_verb + "_", "")
-                    _allowedVerbs.Add(declared_verb.ToUpperInvariant())
+                    _canonicalName <- methodInfo.Name.Replace(declared_verb + "_", "")
+                    _allowedVerbs.Add(declared_verb.ToUpperInvariant()) |> ignore
 
             override this.NormalizedName 
-                with get() = if String.IsNullOrEmpty(_verblessName) then base.Name else _verblessName
+                with get() = if String.IsNullOrEmpty(_canonicalName) then base.Name else _canonicalName
                     
             override this.SatisfyRequest(context:HttpContextBase) = 
                 if _allowedVerbs.Count = 0 then
@@ -153,10 +163,10 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                 _lambda.Force().Invoke(instance, args)
 
             override this.IsMatch(actionName:string) =
-                if String.IsNullOrEmpty(_verblessName) then
+                if String.IsNullOrEmpty(_canonicalName) then
                     String.Compare(this.Name, actionName, StringComparison.OrdinalIgnoreCase) = 0
                 else
-                    String.Compare(_verblessName, actionName, StringComparison.OrdinalIgnoreCase) = 0
+                    String.Compare(_canonicalName, actionName, StringComparison.OrdinalIgnoreCase) = 0
 
             interface ICustomAttributeProvider with                 
                 member x.IsDefined(attType, ``inherit``) = 
@@ -275,7 +285,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                     let potentialActions = target.GetMethods(BindingFlags.Public ||| BindingFlags.Static)
 
                     for a in potentialActions do
-                        if a.DeclaringType != typeof<obj> then 
+                        if a.DeclaringType <> typeof<obj> then 
                             let method_desc = MethodInfoActionDescriptor(a, desc)
                             desc.Actions.Add method_desc
 

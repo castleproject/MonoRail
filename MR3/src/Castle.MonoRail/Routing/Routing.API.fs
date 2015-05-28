@@ -123,7 +123,7 @@ namespace Castle.MonoRail.Routing
         member internal this.InternalMatch(path:string, name:string, config:Action<RouteConfig>, handlerMediator:IRouteHttpHandlerMediator) = 
             let routeNode = ParseRouteDefinition(path)
             let route = new Route(parent, routeNode, name, path, handlerMediator)
-            if config != null then
+            if config <> null then
                 let cfg = RouteConfig(route)
                 config.Invoke(cfg)
                 route.RouteConfig <- cfg
@@ -139,7 +139,7 @@ namespace Castle.MonoRail.Routing
     
         // this is very order dependant, but shouldnt be a problem in practice
         let _children = lazy ( let children : IList<Route> = 
-                                   if (_config != null) then upcast (_config.Routes) else upcast List()
+                                   if _config <> null then upcast (_config.Routes) else upcast List()
                                RouteCollection(children) )
 
         let encode (value:string) = 
@@ -157,7 +157,7 @@ namespace Castle.MonoRail.Routing
 
 
         let rec rec_generate_url (route:Route) (buffer:StringBuilder) (parameters:IDictionary<string,string>) = 
-            if route.Parent != null then 
+            if route.Parent <> null then 
                 rec_generate_url route.Parent buffer parameters
             let r, msg = RecursiveGenerate buffer 0 route.RouteNodes (List<string>()) parameters (route.DefaultValues)
             if not r then 
@@ -199,7 +199,7 @@ namespace Castle.MonoRail.Routing
             then "/" + build_qs parameters
             else result + build_qs parameters
 
-        member internal x.HasConfig = _config != null
+        member internal x.HasConfig = _config <> null
         member internal this.DefaultValues = _defValues.Force()
         member internal this.InvariablesValues = _invariablesValues.Force()
         member internal this.RouteNodes = routeNodes

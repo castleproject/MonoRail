@@ -49,14 +49,15 @@ namespace Castle.MonoRail.Hosting.Mvc
             if not hasCont then raise(MonoRailException("Expecting route to have at least a 'controller' entry"))
 
             let spec = NamedControllerCreationSpec( area, controller )
-            let prototype = (!_controllerProviderAggregator).CreateController spec
+            let prototypeFunc = (!_controllerProviderAggregator).CreateController spec
             
-            if prototype = null then
+            if prototypeFunc = null then 
                 // context.AddError( ExceptionBuilder.ControllerProviderNotFound() )
-                false
+                false 
             else
-                let executor = (!_controllerExecProviderAggregator).CreateExecutor (prototype)
-                
+                let prototype = prototypeFunc.Invoke(ControllerCreationContext(route_data, context))
+
+                use executor = (!_controllerExecProviderAggregator).CreateExecutor (prototype)
                 if executor = null then
                     // context.AddError( ExceptionBuilder.ControllerExecutorProviderNotFound() )
                     false
@@ -85,6 +86,15 @@ namespace Castle.MonoRail.Hosting.Mvc
     
     type MonoRailHandlerMediator() = 
         interface IRouteHttpHandlerMediator with
-            member this.GetHandler(request:HttpRequest, routeData:RouteMatch) : IHttpHandler =
-                MonoRailHandler() :> IHttpHandler
+            member this.GetHandler(request, routeData) =
+                upcast MonoRailHandler() 
     
+    type IgnoreRoute() = 
+        
+        static let _instance = IgnoreRoute()
+
+        static member Instance = _instance
+
+        interface IRouteHttpHandlerMediator with
+            member this.GetHandler(request, routeData) =
+                null

@@ -58,10 +58,13 @@ module Helpers
         let met = req.HttpMethod
         let override1 = req.Form.["_method"] // rails style
         let override2 = req.Headers.["X-HTTP-Method"] // o-data style
-        if met === "POST" && (not (String.IsNullOrEmpty override1) || not (String.IsNullOrEmpty(override2)))  then
-            if String.IsNullOrEmpty override1 
+        let override3 = req.Headers.["X-HTTP-Method-Override"] // g-data
+        if met === "POST" && (not (String.IsNullOrEmpty override1) || not (String.IsNullOrEmpty(override2)) || not (String.IsNullOrEmpty(override3)))  then
+            if not <| String.IsNullOrEmpty override1 
             then override1
-            else override2
+            elif not <| String.IsNullOrEmpty override2 
+            then override2 
+            else override3
         else met
 
     // see http://www.trelford.com/blog/post/Exposing-F-Dynamic-Lookup-to-C-WPF-Silverlight.aspx

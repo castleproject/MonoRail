@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+	<id>Castle.MonoRail3</id>
+	<title>Castle MonoRail 3.0</title>
+	<version>0.0.0.2</version>
+	<authors>Hamilton Verissimo, Henry Conceicao, Castle Team</authors>
+	<description>Decent Web MVC framework</description>
+	<language>en-US</language>
+	<projectUrl>http://www.castleproject.org</projectUrl>
+	<licenseUrl>http://www.opensource.org/licenses/lgpl-3.0.html</licenseUrl>
+	<tags>web mvc castle</tags>
+	<frameworkAssemblies>
+	  <frameworkAssembly assemblyName="System.Web" targetFramework="net40" />
+	  <frameworkAssembly assemblyName="System.Net" targetFramework="net40" />
+	</frameworkAssemblies>
+    <dependencies>
+      <dependency id="FSharp.Core" version="4.0.0" />
+    </dependencies> 
+  </metadata>
+  <files>
+    <file src="FParsec.dll" target="lib\net40" />
+    <file src="FParsecCS.dll" target="lib\net40" />
+	<file src="Castle.Blade.dll" target="lib\net40" />
+    <file src="Castle.Blade.Web.dll" target="lib\net40" />
+	<file src="Castle.Extensibility.dll" target="lib\net40" />
+	<file src="Castle.MonoRail.dll" target="lib\net40" />
+	<file src="System.ComponentModel.Composition.Codeplex.dll" target="lib\net40" />
+	<file src="System.Reflection.Context.CodePlex.dll" target="lib\net40" />
+	<file src="Castle.MonoRail.ViewEngines.Blade.dll" target="lib\net40" />
+	<file src="Newtonsoft.Json.dll" target="lib\net40" />
+	
+	<file src="*.exe" target="lib\net40" />
+    <file src="*.exe.config" target="lib\net40" />
+  </files>
+</package>

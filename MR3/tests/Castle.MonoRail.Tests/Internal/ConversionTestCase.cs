@@ -3,6 +3,7 @@
 	using System;
 	using System.Globalization;
 	using System.Threading;
+	using FluentAssertions;
 	using NUnit.Framework;
 
 	[TestFixture]
@@ -12,6 +13,19 @@
 		public void Establish_Context()
 		{
 			Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("pt-BR");
+		}
+
+		[TestCase(typeof(string[]), "carrier,vendor", new[] { "carrier", "vendor" })]
+		[TestCase(typeof(string[]), "el1,el2,el3", new[] { "el1", "el2", "el3" })]
+		[TestCase(typeof(string[]), "carrier", new [] { "carrier" })]
+		[TestCase(typeof(int[]), "1,2,3", new int[] { 1,2,3 })]
+		[TestCase(typeof(int[]), "1", new int[] { 1 })]
+		public void Convert_should_transform_input_to_array(Type paramType, string input, Array expected)
+		{
+			var tuple = Conversions.convert(input, paramType);
+
+			Assert.IsTrue(tuple.Item1);
+			(tuple.Item2 as Array).Should().BeEquivalentTo(expected);
 		}
 
 		[TestCase("R$ 100", 100)]

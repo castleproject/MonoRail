@@ -1,0 +1,22 @@
+﻿@{
+	Layout = "~/Views/Shared/default.cshtml";
+}
+@using ODataTestWebSite.Controllers.AggRootModel
+@inherits Castle.MonoRail.Blade.ViewPage<Branch>
+
+<div class="container">
+
+	<h2>
+		Branch @Model.Name (@Model.Id)
+	</h2>
+
+	<h3> Revisions </h3>
+
+	<ul>
+	@foreach(var b in @Model.Revisions)
+	{
+		<li>@b.FileName - by @b.UserId</li>
+	}
+	</ul>
+
+</div>

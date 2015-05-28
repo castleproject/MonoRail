@@ -77,9 +77,27 @@ module RefHelpers
             failwithf "Expected a single %s, but found many in provider %O" (typeof<'a>.Name) (prov.GetType())
     *)      
 
-    let propinfo_from_exp (exp:Expression<Func<'a, obj>>) : PropertyInfo array = 
+    let lastpropinfo_from_exp (exp:Expression<Func<'a, 'b>>) : PropertyInfo = 
         if exp.NodeType <> ExpressionType.Lambda then
-            raise (ArgumentException ("Expression should be a lambda", "propertyAccess"))
+            raise (ArgumentException ("Expression must be a lambda", "propertyAccess"))
+        else
+            let mutable curExp : Expression = exp.Body
+            let prop : Ref<PropertyInfo> = ref null
+            while !prop = null && curExp.NodeType <> ExpressionType.Parameter do
+                match curExp.NodeType with 
+                | ExpressionType.MemberAccess -> 
+                    let memberAccess = curExp :?> MemberExpression
+                    // propList.Add (memberAccess.Member :?> PropertyInfo)
+                    prop := memberAccess.Member :?> PropertyInfo
+                    curExp <- memberAccess.Expression
+                | _ ->
+                    failwithf "Unexpected node type %O " (curExp.NodeType)
+            !prop
+            
+
+    let properties_from_exp (exp:Expression<Func<'a, 'b>>) : PropertyInfo array = 
+        if exp.NodeType <> ExpressionType.Lambda then
+            raise (ArgumentException ("Expression must be a lambda", "propertyAccess"))
         else
             let mutable curExp : Expression = exp.Body
             let propList = List()

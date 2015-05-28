@@ -18,6 +18,7 @@ namespace Castle.MonoRail.Helpers
     open System
     open System.Collections.Generic
     open System.Text
+    open System.IO
     open System.Linq
     open System.Linq.Expressions
     open System.Web
@@ -28,8 +29,23 @@ namespace Castle.MonoRail.Helpers
     type public UrlHelper(ctx) = 
         inherit BaseHelper(ctx)
         
+        static let to_bytearray (v:int64) = 
+            BitConverter.GetBytes(v)
+
         static member Combine( url1:string, url2:string ) = 
             url1.TrimEnd([|'/'|]) + "/" + url2.TrimStart([|'/'|])
+
+        member x.TimestampContent(url) : IHtmlStringEx = 
+            let finalUrl = (UrlHelper.Combine (UrlHelper.Combine(x.AppPath, "Content"), url))
+            let physicalPath = x.Context.HttpContext.Server.MapPath(finalUrl)
+            if File.Exists (physicalPath) then
+                let fi = FileInfo(physicalPath)
+                let ts = (BitConverter.ToString (to_bytearray (fi.LastWriteTimeUtc.Ticks))).Replace("-", "")
+                upcast HtmlResult(finalUrl + "?t=" + ts)
+            else upcast HtmlResult(finalUrl)
+
+        // member x.ContextualTimestampContent(url) : IHtmlStringEx = 
+
 
         member x.Content(url:string) : IHtmlStringEx = 
             // <app_path>/Content/<url>

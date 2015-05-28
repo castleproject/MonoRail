@@ -2,13 +2,24 @@
 {
 	using System;
 	using System.Web;
+	using Castle.MonoRail.Hosting.Mvc;
 	using Hosting.Mvc.Typed;
 
 	public class FakeActionDescriptor : ControllerActionDescriptor
 	{
 		public FakeActionDescriptor(string name)
-			: base(name, new ControllerDescriptor(typeof(FakeController)))
+			: base(name, new TypedControllerDescriptor(typeof(FakeController)))
 		{
+		}
+
+		public override Type ReturnType
+		{
+			get { return typeof (void); }
+		}
+
+		public override bool HasAnnotation<TAnnotation>()
+		{
+			return false;
 		}
 
 		public override bool SatisfyRequest(HttpContextBase context)

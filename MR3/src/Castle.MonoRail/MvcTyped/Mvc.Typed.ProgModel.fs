@@ -75,7 +75,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
 
             /// Allows subclasses to change original list of processors
             abstract member PruneProcessorList : originalList:Lazy<ActionProcessor, IComponentOrder> seq -> Lazy<ActionProcessor, IComponentOrder> seq
-            abstract member Dispose : unit -> unit
+            //abstract member Dispose : unit -> unit
 
             default x.PruneProcessorList (original) = original
 
@@ -87,36 +87,33 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                 prepare_msgs (this.PruneProcessorList (_actionMsgs))
 
             override this.Execute(action_name, controller:ControllerPrototype, route_data:RouteMatch, context:HttpContextBase) = 
-                try
+                let prototype = controller :?> TypedControllerPrototype
+                let desc = prototype.Descriptor
                     
-                    let prototype = controller :?> TypedControllerPrototype
-                    let desc = prototype.Descriptor
+                // get the list of actions that match the request action name
+                let candidates = desc.Actions |> Seq.filter (fun (can:ControllerActionDescriptor) -> can.IsMatch action_name)
+                if Seq.isEmpty candidates then ExceptionBuilder.RaiseMRException(ExceptionBuilder.CandidatesNotFoundMsg(action_name))
                     
-                    // get the list of actions that match the request action name
-                    let candidates = desc.Actions |> Seq.filter (fun (can:ControllerActionDescriptor) -> can.IsMatch action_name)
-                    if Seq.isEmpty candidates then ExceptionBuilder.RaiseMRException(ExceptionBuilder.CandidatesNotFoundMsg(action_name))
-                    
-                    // reduce the list to one
-                    let action = this.ActionSelector.Select (candidates, context)
-                    if action = null then ExceptionBuilder.RaiseMRException(ExceptionBuilder.CandidatesNotFoundMsg(action_name))
+                // reduce the list to one
+                let action = this.ActionSelector.Select (candidates, context)
+                if action = null then ExceptionBuilder.RaiseMRException(ExceptionBuilder.CandidatesNotFoundMsg(action_name))
 
-                    // order and connect the action processors
-                    let firstMsg = this.PrepareMsgs() 
-                    if !firstMsg = null then ExceptionBuilder.RaiseMRException(ExceptionBuilder.EmptyActionProcessors)
+                // order and connect the action processors
+                let firstMsg = this.PrepareMsgs() 
+                if !firstMsg = null then ExceptionBuilder.RaiseMRException(ExceptionBuilder.EmptyActionProcessors)
                     
-                    // create the context for this action processment
-                    let ctx = ActionExecutionContext(action, controller, context, route_data)
+                // create the context for this action processment
+                let ctx = ActionExecutionContext(action, controller, context, route_data)
 
-                    // Run
-                    (!firstMsg).Process ctx 
+                // Run
+                (!firstMsg).Process ctx 
                     
-                    // result
-                    ctx.Result
+                // result
+                ctx.Result
 
-                finally
-                    this.Dispose()
-                    
-
+            interface IDisposable with 
+                override x.Dispose() = 
+                    ()
 
     and [<Export>] 
         [<PartMetadata("Scope", ComponentScope.Request)>]
@@ -128,10 +125,11 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
             let mutable _lifetime : ExportLifetimeContext<PocoControllerExecutor> = null
             member this.Lifetime       with get() = _lifetime and set(v) = _lifetime <- v
 
-            override x.Dispose() = 
-                if _lifetime <> null then 
-                    _lifetime.Dispose()
-                    _lifetime <- null
+            interface IDisposable with 
+                override x.Dispose() = 
+                    if _lifetime <> null then 
+                        _lifetime.Dispose()
+                        _lifetime <- null
 
             
 

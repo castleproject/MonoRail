@@ -32,7 +32,7 @@ namespace Castle.MonoRail.Helpers
             if required then " required aria-required=\"true\"" else ""
 
         member x.Input(itype:string, name:string, id:string, value:obj, required:bool, html:IDictionary<string, string>) : IHtmlStringEx =
-            let validId = if id != null then id else x.ToId name
+            let validId = if id <> null then id else x.ToId name
             let dict = x.Merge html [("id", validId)]
             let encval = if not (value = null) then x.HtmlEncode((value.ToString())) else ""; 
 

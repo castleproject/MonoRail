@@ -110,16 +110,16 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
         let _actionResultExecutor = arExecutor
 
         override x.Process(context:ActionExecutionContext) = 
-            if context.Exception = null then
-                let res = context.Result
+            // if context.Exception = null then
+            let res = context.Result
 
-                match res with 
-                | :? ActionResult as ar -> 
-                    _actionResultExecutor.Execute(ar, context.ActionDescriptor, 
-                                                  context.Prototype, 
-                                                  context.RouteMatch, context.HttpContext)
-                | _ -> 
-                    // we shouldnt really ignore, instead, do a default kind of action - rendering a view?
-                    ()
+            match res with 
+            | :? ActionResult as ar -> 
+                _actionResultExecutor.Execute(ar, context.ActionDescriptor, 
+                                                context.Prototype, 
+                                                context.RouteMatch, context.HttpContext)
+            | _ -> 
+                // we shouldnt really ignore, instead, do a default kind of action - rendering a view?
+                ()
 
             x.ProcessNext(context)

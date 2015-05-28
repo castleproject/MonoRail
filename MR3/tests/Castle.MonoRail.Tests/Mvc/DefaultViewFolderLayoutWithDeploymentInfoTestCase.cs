@@ -41,11 +41,13 @@ namespace Castle.MonoRail.Tests.Mvc
 		{
 			var req = new ViewRequest() { ViewFolder = "home", DefaultName = "index" };
 			serviceNoVPath.ProcessLocations(req, new StubHttpContext());
-			req.ViewLocations.Count().Should().Be(4);
-			req.ViewLocations.ElementAt(0).Should().Be("/bundles/BundleName/Views/home/index");
-			req.ViewLocations.ElementAt(1).Should().Be("/Views/home/index");
-			req.ViewLocations.ElementAt(2).Should().Be("/bundles/BundleName/Views/Shared/index");
-			req.ViewLocations.ElementAt(3).Should().Be("/Views/Shared/index");
+			req.ViewLocations.Count().Should().Be(6);
+			req.ViewLocations.Contains("/bundles/BundleName/Views/home/index");
+            req.ViewLocations.Contains("/bundles/BundleName/Views/home/_index");
+            req.ViewLocations.Contains("/Views/home/index");
+            req.ViewLocations.Contains("/Views/home/_index");
+            req.ViewLocations.Contains("/bundles/BundleName/Views/Shared/index");
+            req.ViewLocations.Contains("/Views/Shared/index");
 		}
 
 		[Test]
@@ -53,11 +55,13 @@ namespace Castle.MonoRail.Tests.Mvc
 		{
 			var req = new ViewRequest() { ViewFolder = "home", DefaultName = "index" };
 			serviceWithVPath.ProcessLocations(req, new StubHttpContext());
-			req.ViewLocations.Count().Should().Be(4);
-			req.ViewLocations.ElementAt(0).Should().Be("/app/bundles/BundleName/Views/home/index");
-			req.ViewLocations.ElementAt(1).Should().Be("/app/Views/home/index");
-			req.ViewLocations.ElementAt(2).Should().Be("/app/bundles/BundleName/Views/Shared/index");
-			req.ViewLocations.ElementAt(3).Should().Be("/app/Views/Shared/index");
+			req.ViewLocations.Count().Should().Be(6);
+			req.ViewLocations.Contains("/app/bundles/BundleName/Views/home/index");
+            req.ViewLocations.Contains("/app/bundles/BundleName/Views/home/_index");
+            req.ViewLocations.Contains("/app/Views/home/index");
+            req.ViewLocations.Contains("/app/Views/home/_index");
+            req.ViewLocations.Contains("/app/bundles/BundleName/Views/Shared/index");
+            req.ViewLocations.Contains("/app/Views/Shared/index");
 		}
 
 		[Test]
@@ -65,11 +69,13 @@ namespace Castle.MonoRail.Tests.Mvc
 		{
 			var req = new ViewRequest() { ViewFolder = "home", DefaultName = "index" };
 			serviceWithComplexVPath.ProcessLocations(req, new StubHttpContext());
-			req.ViewLocations.Count().Should().Be(4);
-			req.ViewLocations.ElementAt(0).Should().Be("/0.0.0/Service/bundles/BundleName/Views/home/index");
-			req.ViewLocations.ElementAt(1).Should().Be("/0.0.0/Service/Views/home/index");
-			req.ViewLocations.ElementAt(2).Should().Be("/0.0.0/Service/bundles/BundleName/Views/Shared/index");
-			req.ViewLocations.ElementAt(3).Should().Be("/0.0.0/Service/Views/Shared/index");
+			req.ViewLocations.Count().Should().Be(6);
+			req.ViewLocations.Contains("/0.0.0/Service/bundles/BundleName/Views/home/index");
+            req.ViewLocations.Contains("/0.0.0/Service/bundles/BundleName/Views/home/_index");
+            req.ViewLocations.Contains("/0.0.0/Service/Views/home/index");
+            req.ViewLocations.Contains("/0.0.0/Service/Views/home/_index");
+            req.ViewLocations.Contains("/0.0.0/Service/bundles/BundleName/Views/Shared/index");
+            req.ViewLocations.Contains("/0.0.0/Service/Views/Shared/index");
 		}
 	}
 }

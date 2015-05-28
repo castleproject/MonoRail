@@ -43,6 +43,12 @@ module public ExtensionMethods =
     let MatchExt4(router:RouteOperations, path:string, name:string, config:Action<RouteConfig>) = 
         router.Match(path, name, config, MonoRailHandlerMediator())
 
+    [<ExtensionAttribute>]
+    [<CompiledName("MatchIgnore")>]
+    let MatchIgnore1(router:RouteOperations, path:string) = 
+        router.Match(path, IgnoreRoute.Instance)
+
+
     (*
 
     [<ExtensionAttribute>]

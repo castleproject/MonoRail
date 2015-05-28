@@ -9,7 +9,7 @@
 	{
 		public ActionResult Index()
 		{
-			return new OutputWriterResult(WriteMsg);
+			return new TextWriterResult(WriteMsg);
 		}
 
 		public ActionResult ReplyWith304()
@@ -38,9 +38,8 @@
 		}
 
 
-		private void WriteMsg(Stream stream)
+		private void WriteMsg(TextWriter writer)
 		{
-			var writer = new StreamWriter(stream);
 			writer.Write("Howdy");
 			writer.Flush();
 		}

@@ -88,8 +88,9 @@ namespace Castle.MonoRail.Tests.Helpers
             helper.Render("name");
 
             var views = new List<string>(_views);
-            Assert.AreEqual(2, views.Count);
+            Assert.AreEqual(3, views.Count);
             Assert.Contains("/Views/home/name", views);
+            Assert.Contains("/Views/home/_name", views);
             Assert.Contains("/Views/Shared/name", views);
         }
 
@@ -103,10 +104,12 @@ namespace Castle.MonoRail.Tests.Helpers
             helper.Render("name");
 
             var views = new List<string>(_views);
-            Assert.AreEqual(4, views.Count);
+            Assert.AreEqual(6, views.Count);
             Assert.Contains("/admin/Views/home/name", views);
             Assert.Contains("/admin/Views/Shared/name", views);
+            Assert.Contains("/admin/Views/home/_name", views);
 			Assert.Contains("/Views/admin/Shared/name", views);
+            Assert.Contains("/Views/admin/home/_name", views);
 			Assert.Contains("/Views/admin/home/name", views);
         }
 
@@ -186,8 +189,9 @@ namespace Castle.MonoRail.Tests.Helpers
             helper.Exists("name");
 
             var views = new List<string>(_views);
-            Assert.AreEqual(2, views.Count);
+            Assert.AreEqual(3, views.Count);
             Assert.Contains("/Views/home/name", views);
+            Assert.Contains("/Views/home/_name", views);
             Assert.Contains("/Views/Shared/name", views);
         }
 
@@ -201,11 +205,13 @@ namespace Castle.MonoRail.Tests.Helpers
             helper.Exists("name");
 
             var views = new List<string>(_views);
-            Assert.AreEqual(4, views.Count);
+            Assert.AreEqual(6, views.Count);
             Assert.Contains("/admin/Views/home/name", views);
+            Assert.Contains("/admin/Views/home/_name", views);
             Assert.Contains("/admin/Views/Shared/name", views);
 			Assert.Contains("/Views/admin/Shared/name", views);
 			Assert.Contains("/Views/admin/home/name", views);
+            Assert.Contains("/Views/admin/home/_name", views);
         }
 
         class Customer

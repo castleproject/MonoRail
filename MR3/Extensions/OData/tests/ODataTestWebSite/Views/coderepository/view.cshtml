@@ -1,0 +1,22 @@
+﻿@{
+	Layout = "~/Views/Shared/default.cshtml";
+}
+@using ODataTestWebSite.Controllers.AggRootModel
+@inherits Castle.MonoRail.Blade.ViewPage<Repository>
+
+<div class="container">
+
+	<h2>
+		Repository @Model.Name (@Model.Id)
+	</h2>
+
+	<h3> Branches </h3>
+
+	<ul>
+	@foreach(var b in @Model.Branches)
+	{
+		<li>@b.Name</li>
+	}
+	</ul>
+
+</div>

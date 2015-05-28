@@ -104,6 +104,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                     for f in filters do 
                         f.BeforeAction(filterCtx)
                         if filterCtx.ActionResult <> null then
+                            canProceed := false
                             context.Result <- filterCtx.ActionResult
                             resultProcessor.Process(context)
 
@@ -134,9 +135,14 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                 let filterCtx = ExceptionFilterExecutionContext(context)
                 for f in filters do 
                     f.HandleException(filterCtx)
+
+                    if filterCtx.ExceptionHandled then
+                        context.ExceptionHandled <- true
+
                     // we only process the action result if the filter signaled that it handled the exception
                     if filterCtx.ExceptionHandled && filterCtx.ActionResult <> null then
                         context.Result <- filterCtx.ActionResult
+                        // context.Exception <- null
                         resultProcessor.Process(context)
 
             if not context.ExceptionHandled then

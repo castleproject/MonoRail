@@ -98,7 +98,10 @@ namespace Castle.MonoRail.Tests.Serializers.Form
         [Test]
         public void Deserialize_WithMultipleEntriesForSameCollection_CreatesAndFillsCollection()
         {
-			formValues["customer[permissions][id]"] = "10,11,12,13";
+			formValues.Add("customer[permissions][id]","10");
+			formValues.Add("customer[permissions][id]","11");
+			formValues.Add("customer[permissions][id]","12");
+			formValues.Add("customer[permissions][id]","13");
 
             var serializer = new FormBasedSerializer<Customer>() as IModelSerializer<Customer>;
 			var model = serializer.Deserialize("customer", "", serializationContext, new DataAnnotationsModelMetadataProvider());
@@ -114,8 +117,15 @@ namespace Castle.MonoRail.Tests.Serializers.Form
 		[Test]
         public void Deserialize_WithMultipleEntriesWithMultiplesFieldsForSameCollection_CreatesAndFillsCollection()
         {
-			formValues["customer[permissions][id]"] = "10,11,12,13";
-			formValues["customer[permissions][name]"] = "n1,n2,n3,n4";
+			formValues.Add("customer[permissions][id]","10");
+			formValues.Add("customer[permissions][id]","11");
+			formValues.Add("customer[permissions][id]","12");
+			formValues.Add("customer[permissions][id]","13");
+
+			formValues.Add("customer[permissions][name]","n1");
+			formValues.Add("customer[permissions][name]","n2");
+			formValues.Add("customer[permissions][name]","n3");
+			formValues.Add("customer[permissions][name]","n4");
 
             var serializer = new FormBasedSerializer<Customer>() as IModelSerializer<Customer>;
 			var model = serializer.Deserialize("customer", "", serializationContext, new DataAnnotationsModelMetadataProvider());

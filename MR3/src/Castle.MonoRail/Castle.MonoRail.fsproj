@@ -54,6 +54,7 @@
     </Compile>
     <Compile Include="Attributes.fs" />
     <Compile Include="Hosting.Api.fs" />
+    <Compile Include="Mvc.Model.Contracts.fs" />
     <Compile Include="Mvc.Model.fs" />
     <Compile Include="Routing\Routing.Internal.Parsing.fs" />
     <Compile Include="Routing\Routing.RequestInfo.fs" />
@@ -71,8 +72,10 @@
     <Compile Include="Mvc.ViewEngines.Api.fs" />
     <Compile Include="Mvc.ViewEngine.fs" />
     <Compile Include="Mvc.ViewComponent.fs" />
+    <Compile Include="Mvc.Descriptors.fs" />
+    <Compile Include="Mvc.Typed.Descriptors.fs" />
+    <Compile Include="Mvc.Typed.Descriptors.Builders.fs" />
     <Compile Include="Mvc.ServiceRegistry.fs" />
-    <Compile Include="Mvc.Typed.Descriptor.fs" />
     <Compile Include="Mvc.Common.fs" />
     <Compile Include="Mvc.ActionResults.fs" />
     <Compile Include="Mvc.Typed.Action.fs">

@@ -50,8 +50,8 @@ namespace Castle.MonoRail.Hosting.Container
             let files = Directory.GetFiles(folder, "*.dll")
             for file in files do
                 let asm = load_assembly_guarded file
-                if asm != null then
-                    let types = RefHelpers.guard_load_types(asm) |> Seq.filter (fun t -> t != null) 
+                if asm <> null then
+                    let types = RefHelpers.guard_load_types(asm) |> Seq.filter (fun t -> t <> null) 
                     if not (Seq.isEmpty types) then
                         _catalogs.Add (new TypeCatalog(types))
             _parts <- _catalogs |> Seq.collect (fun c -> c.Parts) |> Linq.Queryable.AsQueryable

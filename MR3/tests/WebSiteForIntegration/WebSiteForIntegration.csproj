@@ -61,6 +61,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\HttpMethodRestrictionsController.cs" />
     <Compile Include="Controllers\RootController.cs" />
     <Compile Include="Generated\GeneratedRoutes.cs" />
     <Compile Include="Global.asax.cs">
@@ -72,10 +73,6 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Extensibility\src\Castle.Extensibility\Castle.Extensibility.fsproj">
-      <Project>{10FDDA68-3450-4179-819A-248D9D628454}</Project>
-      <Name>Castle.Extensibility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Castle.Blade\src\Castle.Blade.Web\Castle.Blade.Web.fsproj">
       <Project>{8DF9E981-2558-4EFD-A455-5459F36A9B03}</Project>
       <Name>Castle.Blade.Web</Name>

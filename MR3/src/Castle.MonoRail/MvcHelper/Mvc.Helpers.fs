@@ -93,7 +93,7 @@ namespace Castle.MonoRail.Helpers
             context.HttpContext.Server.UrlEncode str
         
         member internal x.AttributesToString(attributes:IDictionary<string,string>) = 
-            if (attributes == null) then
+            if attributes = null then
                 ""
             else
                 let buffer = StringBuilder()

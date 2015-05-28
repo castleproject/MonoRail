@@ -27,6 +27,7 @@ module Castle.MonoRail.Generator.Api
     open Castle.MonoRail
     open Castle.MonoRail.Routing
     open Microsoft.CSharp
+    open Castle.MonoRail.Hosting.Mvc
     open Castle.MonoRail.Hosting.Mvc.Typed
     open System.ComponentModel.Composition
     open System.ComponentModel.Composition.Hosting
@@ -396,7 +397,7 @@ module Castle.MonoRail.Generator.Api
         let tempContainer : IContainer = upcast new Container(DirectoryInfo(inputAssemblyPath).Parent.FullName) 
 
         Console.WriteLine("Fetching ControllerDescriptorBuilder")
-        let descBuilder = tempContainer.Get<ControllerDescriptorBuilder>()
+        let descBuilder = tempContainer.Get<TypedControllerDescriptorBuilder>()
 
         for ct,name in controllers do
             Console.WriteLine ("Processing " + ct.FullName)

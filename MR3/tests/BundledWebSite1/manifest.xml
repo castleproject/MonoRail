@@ -1,0 +1,15 @@
+<manifest>
+	<name>Core.Model</name>
+	<version>0.1.0.0</version>
+	<composer>
+		<type>Castle.MonoRail.Hosting.Container.MefComposerBuilder, Castle.MonoRail</type>
+		<!-- 
+		<type>Castle.Extensibility.Hosting.CompositeComposerBuilder, Castle.Extensibility</type>
+		<parameters>
+			<parameter>Castle.MonoRail.Hosting.Container.MefComposerBuilder, Castle.MonoRail</parameter>
+			<parameter>Castle.Extensibility.Windsor.WindsorComposer, Castle.Extensibility.Windsor</parameter>
+		</parameters>
+		-->
+	</composer>
+
+</manifest>

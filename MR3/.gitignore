@@ -2,8 +2,8 @@
 /build
 /exp
 /TestResults
-
 src/*/obj
 tests/*/obj
 src/*/bin
 tests/*/bin
+/TestResult.xml
