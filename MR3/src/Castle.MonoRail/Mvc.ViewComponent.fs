@@ -77,11 +77,11 @@ namespace Castle.MonoRail
 
         member this.Execute<'tvc when 'tvc :> IViewComponent>(viewComponentName, context, configurer:Action<'tvc>) = 
             let spec = build_spec viewComponentName
-            let prototype = (!_controllerProviderAggregator).CreateController spec
+            let prototypeFunc = (!_controllerProviderAggregator).CreateController spec
 
-            if prototype = null then ExceptionBuilder.RaiseViewComponentNotFound()
+            if prototypeFunc = null then ExceptionBuilder.RaiseViewComponentNotFound()
             
-            let viewComponent = prototype.Instance :?> IViewComponent
+            let viewComponent = prototypeFunc.Invoke().Instance :?> IViewComponent
 
             if configurer <> null then configurer.Invoke(viewComponent :?> 'tvc)
             

@@ -234,16 +234,32 @@ namespace Castle.MonoRail
             with get() = _req and set v = _req <- v
     *)
 
-    type MimeType = 
-        | Html = 1
-        | Xml = 2
-        | JSon = 3
-        | Js = 4
-        | Atom = 5
-        | Rss = 6
-        | FormUrlEncoded = 7
-        | Unknown = -1
-
+    module MediaTypes = 
+        begin
+            [<Literal>] 
+            let public Html  = "text/html"
+            [<Literal>] 
+            let public XHtml = "application/xhtml+xml"
+            [<Literal>] 
+            let public Xml   = "application/xml"
+            [<Literal>] 
+            let public Atom  = "application/atom+xml"
+            [<Literal>] 
+            let public JSon  = "application/json"
+            [<Literal>] 
+            let public Js    = "application/javascript"
+            [<Literal>] 
+            let public Soap  = "application/soap+xml"
+            [<Literal>] 
+            let public Rss   = "application/rss+xml"
+            [<Literal>] 
+            let public FormUrlEncoded = "x-www-form-urlencoded"
+            [<Literal>] 
+            let public MultipartForm  = "multipart/form-data"
+            
+            
+            
+        end
 
     [<AllowNullLiteral>]
     type HttpError(statusCode:HttpStatusCode, errorCode:string, description:string) = 

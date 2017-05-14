@@ -30,8 +30,7 @@ namespace Castle.MonoRail.Hosting.Mvc
     type NamedControllerCreationSpec(area:string, name:string) = 
         inherit ControllerCreationSpec()
         let _combined = lazy ( if String.IsNullOrEmpty area 
-                               then name 
-                               else area + "\\" + name )
+                               then name else area + "\\" + name )
         member x.Area = area
         member x.ControllerName = name
         member x.CombinedName = _combined.Force()
@@ -51,7 +50,9 @@ namespace Castle.MonoRail.Hosting.Mvc
 
     [<AbstractClass; AllowNullLiteral>]
     type ControllerProvider() = 
-        abstract member Create : spec:ControllerCreationSpec -> ControllerPrototype
+        abstract member Create : spec:ControllerCreationSpec -> Func<ControllerPrototype>
+
+
 
     and [<AbstractClass; AllowNullLiteral>]
         ControllerExecutor() = 
@@ -61,6 +62,8 @@ namespace Castle.MonoRail.Hosting.Mvc
             interface IDisposable with 
                 override this.Dispose() = ()
         end
+
+
     
     and [<AbstractClass; AllowNullLiteral>]
         ControllerExecutorProvider() = 
@@ -68,13 +71,18 @@ namespace Castle.MonoRail.Hosting.Mvc
             abstract member Create : prototype:ControllerPrototype -> ControllerExecutor
         end
 
-    and [<AllowNullLiteral>]
+
+
+    and [<AbstractClass; AllowNullLiteral>]
         ControllerPrototype(controller:obj) =
         class
             let _meta = lazy Dictionary<string,obj>(StringComparer.OrdinalIgnoreCase)
             member this.Metadata = _meta.Force() :> IDictionary<string,obj>
             member this.Instance = controller
+            abstract member SupportsAction : name:string-> bool
+            
         end
+
 
 
 namespace Castle.MonoRail.Hosting.Mvc
@@ -110,6 +118,7 @@ namespace Castle.MonoRail.Hosting.Mvc
         
         member this.CreateController(spec) = 
             try_create spec
+
 
     /// Aggregates all the Controller Executor Providers to expose a single resolution API
     [<Export; AllowNullLiteral>]

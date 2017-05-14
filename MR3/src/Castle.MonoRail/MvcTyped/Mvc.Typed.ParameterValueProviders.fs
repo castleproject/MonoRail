@@ -88,7 +88,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
 
 
     [<Export(typeof<IParameterValueProvider>)>]
-    [<ExportMetadata("Order", 100)>]
+    [<ExportMetadata("Order", 10)>]
     [<PartMetadata("Scope", ComponentScope.Request)>]
     type RequestBoundValueProvider [<ImportingConstructor>] (request:HttpRequestBase) = 
 
@@ -96,7 +96,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
             member x.TryGetValue(name:string, paramType:Type, value:obj byref) = 
                 let reqVal = request.Params.[name]
 
-                if (reqVal == null) then 
+                if reqVal = null then 
                     false
                 else
                     let succeeded, tmp = Conversions.convert reqVal paramType
@@ -125,7 +125,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
                 if String.IsNullOrEmpty contentType then
                     false
                 else
-                    let mime = _contentNeg.ResolveContentType contentType
+                    let mime = _contentNeg.NormalizeRequestContentType contentType
                     let modelType = 
                         if paramType.IsGenericType then paramType.GetGenericArguments() |> Seq.head else paramType
                            

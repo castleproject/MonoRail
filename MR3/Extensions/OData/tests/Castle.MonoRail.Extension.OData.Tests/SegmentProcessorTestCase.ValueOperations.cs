@@ -1,10 +1,30 @@
 ﻿namespace Castle.MonoRail.Extension.OData.Tests
 {
 	using System;
+	using FluentAssertions;
 	using NUnit.Framework;
 
 	public partial class SegmentProcessorTestCase
 	{
+		[Test]
+		public void EntityType_PropertySingle_withValue_View_None_None__Success()
+		{
+			Process("/catalogs(1)/Id/$value", SegmentOp.View, _model, accept: "*/*");
+
+			_response.contentType.Should().Be("text/plain");
+			_body.ToString().Should().Be(@"1");
+		}
+
+		[Test]
+		public void EntityType_PropertySingle_withValue_View_None_Xml__Success_2()
+		{
+			Process("/catalogs(1)/Name/$value", SegmentOp.View, _model, accept: "*/*");
+
+			_response.contentType.Should().Be("text/plain");
+			_body.ToString().Should().Be(@"Cat1");
+		}
+
+
 //		[Test]
 //		public void ValueOperation_ForKeyInResource()
 //		{

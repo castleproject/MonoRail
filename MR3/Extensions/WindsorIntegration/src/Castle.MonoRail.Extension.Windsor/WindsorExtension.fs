@@ -61,7 +61,7 @@ namespace Castle.MonoRail.Extension.Windsor
     type WindsorControllerProvider() =
         inherit ControllerProvider()
 
-        let _desc_builder : Ref<ControllerDescriptorBuilder> = ref null
+        let _desc_builder : Ref<TypedControllerDescriptorBuilder> = ref null
         let _container : Ref<IWindsorContainer> = ref null
 
         let normalize_name (cname:string) =
@@ -99,14 +99,14 @@ namespace Castle.MonoRail.Extension.Windsor
                     let instance = container.Resolve<obj>(key) //, WindsorUtil.BuildArguments(context))
                     let cType = instance.GetType()
                     let desc = (!_desc_builder).Build(cType)
-                    upcast TypedControllerPrototype(desc, instance)
+                    Func<_>(fun _ -> upcast TypedControllerPrototype(desc, instance))
                 else null
             else 
                 let cType = spec.Match (_entries.Force())
                 if cType <> null then
                     let instance = container.Resolve(cType)
                     let desc = (!_desc_builder).Build(cType)
-                    upcast TypedControllerPrototype(desc, instance)
+                    Func<_>(fun _ -> upcast TypedControllerPrototype(desc, instance))
                 else null
                 
             

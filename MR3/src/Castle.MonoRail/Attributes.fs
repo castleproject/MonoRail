@@ -20,25 +20,28 @@ namespace Castle.MonoRail
     open System.Collections.Generic
     open System.Collections.Specialized
     
+    [<Flags>]
     type HttpVerb =
-        | Head = 0
-        | Get = 1
-        | Post = 2
-        | Put = 3
-        | Delete = 4
-        | Options = 5
+        | Head  = 1
+        | Get   = 2
+        | Post  = 4
+        | Put   = 8
+        | Delete = 16
+        | Options = 32
+        | Patch = 64
+        | Merge = 128
 
-    [<AttributeUsage(AttributeTargets.Class|||AttributeTargets.Module, AllowMultiple=true, Inherited=true); AllowNullLiteralAttribute>]
+    [<AttributeUsage(AttributeTargets.Class|||AttributeTargets.Module, AllowMultiple=false, Inherited=true); AllowNullLiteralAttribute>]
     type AreaAttribute(area:string) = 
         inherit Attribute()
         member x.Area = area
 
-    [<AttributeUsage(AttributeTargets.Class|||AttributeTargets.Module, AllowMultiple=true, Inherited=true); AllowNullLiteralAttribute>]
+    [<AttributeUsage(AttributeTargets.Class|||AttributeTargets.Module, AllowMultiple=false, Inherited=true); AllowNullLiteralAttribute>]
     type ControllerAttribute(name:string) = 
         inherit Attribute()
         member x.Name = name
 
-    [<AttributeUsage(AttributeTargets.Method, AllowMultiple=true, Inherited=true); AllowNullLiteralAttribute>]
+    [<AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true); AllowNullLiteralAttribute>]
     type HttpMethodAttribute(verb:HttpVerb) = 
         inherit Attribute()
         member x.Verb = verb

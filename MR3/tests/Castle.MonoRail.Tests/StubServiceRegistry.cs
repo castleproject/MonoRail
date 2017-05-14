@@ -22,6 +22,7 @@ namespace Castle.MonoRail.Tests
     using Castle.MonoRail.Serialization;
     using Castle.MonoRail.ViewEngines;
 	using Hosting.Mvc;
+	using Hosting.Mvc.Typed;
 
 	public class StubServiceRegistry : IServiceRegistry
     {
@@ -33,7 +34,6 @@ namespace Castle.MonoRail.Tests
         public ContentNegotiator _contentNegotiator;
         public ViewComponentExecutor _viewComponentExecutor;
         public ModelMetadataProvider _modelMetadataProvider;
-
 
         public StubServiceRegistry()
         {
@@ -95,6 +95,11 @@ namespace Castle.MonoRail.Tests
 		}
 
 		public ControllerExecutorProviderAggregator ControllerExecutorProvider
+		{
+			get { throw new NotImplementedException(); }
+		}
+
+		public TypedControllerDescriptorBuilder ControllerDescriptorBuilder
 		{
 			get { throw new NotImplementedException(); }
 		}

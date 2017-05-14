@@ -78,7 +78,7 @@ namespace Castle.MonoRail.ViewEngines
 
         member x.View = view
         member x.Engine = engine
-        member x.IsSuccessful = view != null
+        member x.IsSuccessful = view <> null
         member x.LocationsSearch = locationsSearched
     
 

@@ -1,0 +1,29 @@
+﻿@{
+	Layout = "~/Views/Shared/default.cshtml";
+}
+@using ODataTestWebSite.Controllers.AggRootModel
+@inherits Castle.MonoRail.Blade.ViewPage
+
+
+    @Form.For(new Repository(), CodeRepositoryController.Urls.Create.Post(), @=> builder {
+        
+        <fieldset id="newRepo">
+            
+            <legend>Message</legend>
+            
+            <p>
+                @builder.LabelFor(m => m.Name)
+				@builder.EditorFor(m => m.Name)
+            </p>
+            
+            <p>
+                
+            </p>
+				
+			@FormTag.SubmitTag("Create", new Attributes() { { "style", "btn btn-primary" } })          
+			
+        </fieldset>
+		
+		
+    }) 
+

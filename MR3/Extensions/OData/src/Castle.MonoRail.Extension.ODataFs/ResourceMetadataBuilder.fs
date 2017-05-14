@@ -1,4 +1,18 @@
-﻿
+﻿//  Copyright 2004-2012 Castle Project - http://www.castleproject.org/
+//  Hamilton Verissimo de Oliveira and individual contributors as indicated. 
+//  See the committers.txt/contributors.txt in the distribution for a 
+//  full listing of individual contributors.
+// 
+//  This is free software; you can redistribute it and/or modify it
+//  under the terms of the GNU Lesser General Public License as
+//  published by the Free Software Foundation; either version 3 of
+//  the License, or (at your option) any later version.
+// 
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this software; if not, write to the Free
+//  Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
 namespace Castle.MonoRail.OData
 
     open System
@@ -11,27 +25,27 @@ namespace Castle.MonoRail.OData
     open System.Reflection
 
     [<AllowNullLiteral>]
-    type EntitySetConfig(entityName, source, targetType:Type) = 
+    type EntitySetConfig(entitySetName, entityName, source, targetType:Type) = 
         let _entMapAttrs : List<EntityPropertyMappingAttribute> = List()
+        let mutable _entityName = entityName
         member x.TargetType = targetType
-        member x.EntityName : string = entityName
+        member x.EntitySetName : string = entitySetName
+        member x.EntityName with get() = _entityName and set(v) = _entityName <- v
         member x.Source : IQueryable = source
         member internal x.EntityPropertyAttributes : List<EntityPropertyMappingAttribute> = _entMapAttrs
 
 
-    and EntitySetConfigurator<'a>(entityName, source:IQueryable<'a>) = 
-        inherit EntitySetConfig(entityName, source, typeof<'a>)
+    and EntitySetConfigurator<'a>(entitySetName, entityName, source:IQueryable<'a>) = 
+        inherit EntitySetConfig(entitySetName, entityName, source, typeof<'a>)
         
         member x.TypedSource = source
 
         member x.AddAttribute( att:EntityPropertyMappingAttribute ) = 
-            //let memberAccess = exp.Body :?> MemberExpression
-            //let prop = memberAccess.Member :?> PropertyInfo 
-            //let res, list = x.EntityPropertyAttributes.TryGetValue prop
-            //if res
-            //then list.Add att
-            //else x.EntityPropertyAttributes.[prop] <- List([att]) 
             x.EntityPropertyAttributes.Add att
+            x
+        member x.WithEntityName(name) = 
+            x.EntityName <- name
+            x
 
 
 namespace Castle.MonoRail.Extension.OData
@@ -62,7 +76,7 @@ namespace Castle.MonoRail.Extension.OData
         let private resolve_resourceTypeKind_based_on_properties (entType:Type) = 
             let hasKeyOrNonPrimitives = 
                 entType.GetProperties(PropertiesBindingFlags)
-                |> Seq.exists (fun p -> p.IsDefined(typeof<KeyAttribute>, true) || not <| is_primitive p.PropertyType)
+                |> Seq.exists (fun p -> p.IsDefined(typeof<KeyAttribute>, true))
             if hasKeyOrNonPrimitives 
             then ResourceTypeKind.EntityType
             else ResourceTypeKind.ComplexType

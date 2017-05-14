@@ -64,9 +64,9 @@ namespace Castle.MonoRail
 
     [<Interface;AllowNullLiteral>]
     type IModelSerializerResolver = 
-        abstract member HasCustomSerializer : model:Type * mime:MimeType -> bool
-        abstract member Register<'a> : mime:MimeType * serializer:Type -> unit 
-        abstract member CreateSerializer<'a> : mime:MimeType -> IModelSerializer<'a>
-        abstract member CreateSerializer : modelType:Type * mime:MimeType -> IModelSerializer
+        abstract member HasCustomSerializer : model:Type * mediaType:string -> bool
+        abstract member Register<'a> : mediaType:string * serializer:Type -> unit 
+        abstract member CreateSerializer<'a> : mediaType:string -> IModelSerializer<'a>
+        abstract member CreateSerializer : modelType:Type * mediaType:string -> IModelSerializer
 
 

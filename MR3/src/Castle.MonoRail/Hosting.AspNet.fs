@@ -15,6 +15,7 @@
 
 namespace Castle.MonoRail.Hosting
 
+    open System
     open System.Collections.Generic
     open System.Web
     open System.Web.SessionState
@@ -66,7 +67,7 @@ namespace Castle.MonoRail.Hosting
         interface Castle.Extensibility.Hosting.IBehavior with
             
             member x.GetBehaviorExports(imports, exports, manifest) = 
-                if exports |> Seq.exists (fun e -> e.ContractName.StartsWith("Castle.MonoRail")) then
+                if exports |> Seq.exists (fun e -> e.ContractName.StartsWith("Castle.MonoRail", StringComparison.OrdinalIgnoreCase)) then
                     let deployInfo = BundleDeploymentInfo(manifest)
                     let contract = AttributedModelServices.GetContractName(typeof<IDeploymentInfo>)
                     let typeId   = AttributedModelServices.GetTypeIdentity(typeof<IDeploymentInfo>)
@@ -80,7 +81,8 @@ namespace Castle.MonoRail.Hosting
     and BundleDeploymentInfo(manifest:Manifest) = 
         
         let trailing_start (path:string) = 
-            if path.StartsWith("/") then path
+            if path.StartsWith("/", StringComparison.OrdinalIgnoreCase) 
+            then path
             else "/" + path
 
         let vpath = lazy(   let vpathRoot = HttpRuntime.AppDomainAppVirtualPath

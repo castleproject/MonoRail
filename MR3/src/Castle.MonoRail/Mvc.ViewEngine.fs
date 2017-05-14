@@ -47,7 +47,7 @@ namespace Castle.MonoRail.ViewEngines
         let compute_view_locations areaname (viewname:string) (controller:string) = 
             let hasSlash = viewname.IndexOf '/' <> -1
             let spec_view = 
-                if areaname != null then 
+                if areaname <> null then 
                     pre_process [
                         (areaname + "/Views/" + (if hasSlash then viewname else controller + "/" + viewname))
                         ("/Views/" + areaname + "/" + (if hasSlash then viewname else controller + "/" + viewname))
@@ -58,7 +58,7 @@ namespace Castle.MonoRail.ViewEngines
                         ("/Views/" + (if hasSlash then viewname else controller + "/" + viewname))
                     ]
             let shared_view = 
-                if areaname != null then 
+                if areaname <> null then 
                     pre_process [
                         "/" + areaname + "/Views/Shared/" + viewname
                         "/Views/" + areaname + "/Shared/" + viewname
@@ -72,7 +72,7 @@ namespace Castle.MonoRail.ViewEngines
         let compute_layout_locations areaname (layout:string) (controller:string) = 
             let hasSlash = layout.IndexOf '/' <> -1
             let lpath = 
-                if areaname != null then 
+                if areaname <> null then 
                     pre_process [
                         "/" + areaname + "/Views/" + (if hasSlash then layout else controller + "/" + layout)
                         "/Views/" + areaname + "/" + (if hasSlash then layout else controller + "/" + layout)
@@ -82,7 +82,7 @@ namespace Castle.MonoRail.ViewEngines
                         "/Views/" + (if hasSlash then layout else controller + "/" + layout)
                     ]
             let lshared = 
-                if areaname != null then 
+                if areaname <> null then 
                     pre_process [
                         "/" + areaname + "/Views/Shared/" + layout
                         "/Views/" + areaname + "/Shared/" + layout
@@ -99,17 +99,17 @@ namespace Castle.MonoRail.ViewEngines
         interface IViewFolderLayout with
             member x.ProcessLocations (req:ViewRequest, http:System.Web.HttpContextBase) = 
                 if not req.WasProcessed then
-                    if req.ViewName == null then
+                    if req.ViewName = null then
                         req.ViewName <- req.DefaultName
                     req.ViewLocations <- compute_view_locations req.GroupFolder req.ViewName req.ViewFolder
                     let layout = req.OuterViewName
-                    if (layout != null) then 
+                    if (layout <> null) then 
                         req.LayoutLocations <- compute_layout_locations req.GroupFolder layout req.ViewFolder
                     req.SetProcessed()
 
             member x.ProcessPartialLocations (req:ViewRequest, http:System.Web.HttpContextBase) = 
                 if not req.WasProcessed then
-                    if req.ViewName == null then
+                    if req.ViewName = null then
                         req.ViewName <- req.DefaultName
                     req.ViewLocations <- compute_view_locations req.GroupFolder req.ViewName req.ViewFolder
                     req.SetProcessed()

@@ -111,7 +111,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
     [<AbstractClass>]
     type BaseTypeBasedControllerProvider() = 
         inherit ControllerProvider()
-        let mutable _desc_builder : ControllerDescriptorBuilder = null
+        let mutable _desc_builder : TypedControllerDescriptorBuilder = null
 
         [<Import>]
         member this.ControllerDescriptorBuilder
@@ -135,7 +135,7 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
             if cType <> null then
                 let desc = _desc_builder.Build(cType)
                 let instance = this.ActivateController(cType, desc)
-                this.BuildPrototype(instance, desc)
+                Func<ControllerPrototype>(fun _ -> this.BuildPrototype(instance, desc))
             else null
     
 
@@ -178,5 +178,9 @@ namespace Castle.MonoRail.Hosting.Mvc.Typed
         class 
             inherit ControllerPrototype(instance)
             member t.Descriptor = desc
+
+            override x.SupportsAction (name) = 
+                desc.HasAction name
+
         end
 

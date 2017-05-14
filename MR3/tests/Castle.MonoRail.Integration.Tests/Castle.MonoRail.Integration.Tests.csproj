@@ -41,7 +41,7 @@
       <HintPath>..\lib\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\..\tools\NUnit\bin\nunit.framework.dll</HintPath>
+      <HintPath>..\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,11 +54,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionResultsIntegrationTestCase.cs" />
     <Compile Include="BaseServerTest.cs" />
     <Compile Include="HostingTestCase.cs" />
+    <Compile Include="HttpMethodRestrictionsTestCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ComposableHostWebSite\ComposableHostWebSite.csproj">
+      <Project>{A5388E06-87EF-4894-B22A-4716839A165C}</Project>
+      <Name>ComposableHostWebSite</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WebSiteForIntegration\WebSiteForIntegration.csproj">
       <Project>{B3C51C43-5E58-4CEE-8F02-9CFD3981BCCF}</Project>
       <Name>WebSiteForIntegration</Name>

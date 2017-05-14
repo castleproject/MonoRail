@@ -2,12 +2,13 @@
 {
 	using System;
 	using System.Web;
+	using Castle.MonoRail.Hosting.Mvc;
 	using Hosting.Mvc.Typed;
 
 	public class FakeActionDescriptor : ControllerActionDescriptor
 	{
 		public FakeActionDescriptor(string name)
-			: base(name, new ControllerDescriptor(typeof(FakeController)))
+			: base(name, new TypedControllerDescriptor(typeof(FakeController)))
 		{
 		}
 

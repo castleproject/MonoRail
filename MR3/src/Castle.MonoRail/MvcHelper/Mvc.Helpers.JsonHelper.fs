@@ -34,7 +34,7 @@ namespace Castle.MonoRail.Helpers
             arg_not_null targetType "targetType"
             arg_not_null graph "graph"
 
-            let serializer = x.ModelSerializer.CreateSerializer(targetType, MimeType.JSon)
+            let serializer = x.ModelSerializer.CreateSerializer(targetType, MediaTypes.JSon)
             let writer = new StringWriter()
             serializer.Serialize(graph, JsonContentType, writer, x.ModelMetadataProvider)
             upcast HtmlResult( writer.GetStringBuilder().ToString() )
@@ -46,7 +46,7 @@ namespace Castle.MonoRail.Helpers
 
         member x.ToJson<'T>(graph:'T) : IHtmlStringEx = 
             arg_not_null graph "graph"
-            let serializer = x.ModelSerializer.CreateSerializer<'T>(MimeType.JSon)
+            let serializer = x.ModelSerializer.CreateSerializer<'T>(MediaTypes.JSon)
 
             let writer = new StringWriter()
             serializer.Serialize(graph, JsonContentType, writer, x.ModelMetadataProvider)

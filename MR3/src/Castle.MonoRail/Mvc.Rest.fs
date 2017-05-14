@@ -20,6 +20,11 @@ namespace Castle.MonoRail
     open System.Web
     open System.Runtime.InteropServices
     open Castle.MonoRail.Routing
+    open System.Text
+    open System.Globalization
+    open System.Collections.Generic
+    open System.Runtime.Serialization
+    open FParsec
 
 
     type ResourceLink(uri:string, rel:string, contenttype:string, label:string) = 
@@ -71,13 +76,111 @@ namespace Castle.MonoRail
             else 
                 false
 
-    // Needs big refactor, since mime types arent fixed
+    module AcceptHeaderParser = 
+        begin
+            [<LiteralAttribute>]
+            let All = "*"
+            
+            type AcceptHeaderInfo = {
+                media : string;
+                sub : string;
+                quality : float32;
+                level : int;
+                charset : string;
+                // tokens : (string*string) seq;
+                mutable valueCache : int;
+            } with
+                member x.HasWildcard = x.media = All || x.sub = All 
+                member x.MediaType = 
+                    let v = x.media + "/" + x.sub
+                    v
+                member x.ValAsInt() = 
+                    if x.valueCache = 0 then 
+                        // media/sub quality level charset
+                        // 1 bit
+                        //       1 bit
+                        //            2 bytes?
+                        //                   1 byte
+                        //                          1 bit
+                        let v : int = 
+                            let v1 = if x.media = All then 0uy else 1uy
+                            let v2 = if x.sub   = All then 0uy else 1uy
+                            let v3 = if x.quality = 1.0f then 0xFFFF 
+                                     elif x.quality = 0.0f then 0x0000
+                                     else int(x.quality * 100.0f)
+                            let v4 = if x.charset <> null then 1uy else 0uy
+                            // let v5 = if not <| Seq.isEmpty x.tokens then 1uy else 0uy
+                            int((byte) v1 >>> 8) + int((byte) v2 >>> 8) + int((byte) v3 >>> 8) + int((byte) v4 >>> 8) // + (int)v5
+                        x.valueCache <- v
+                    x.valueCache
+                member internal x.Rate(mediaType:string) = 
+                    if x.MediaType === mediaType then 
+                        x.ValAsInt()
+                    elif x.HasWildcard then
+                        let pieces = mediaType.Split([|'/'|], 2)
+                        if x.media <> All && x.media === pieces.[0] then 
+                            int(float(x.ValAsInt()) * 0.5)
+                        elif x.media = All then 
+                            int(float(x.ValAsInt()) * 0.3)
+                        else 0
+                    else 0
+
+            let isAsciiIdStart c =
+                isAsciiLetter c || c = '*'
+            let isAsciiIdContinue c =
+                isAsciiLetter c || isDigit c || c = '*' || c = '+' || c = '-'
+            let ws      = spaces
+            let pc c    = ws >>. pchar c
+            let pval    = ws >>. many1Chars (noneOf ",;=") 
+            let pid     = ws >>. identifier (IdentifierOptions(isAsciiIdStart = isAsciiIdStart, 
+                                                        isAsciiIdContinue = isAsciiIdContinue))
+            let t_q     = ws >>. pstringCI "q"        >>. pc '=' >>. pval  |>> fun v -> ("Q", v)
+            let t_chars = ws >>. pstringCI "charset"  >>. pc '=' >>. pval  |>> fun v -> ("C", v)
+            let t_level = ws >>. pstringCI "level"    >>. pc '=' >>. pval  |>> fun v -> ("L", v)
+            let t_arb   =        pid                 .>>  pc '=' .>>. pval |>> fun (param, v) -> (param, v)
+            let token   = choice [ t_q; t_chars; t_level ; t_arb ]
+            let media   = pid .>> pc '/' .>>. pid |>> fun m -> (fst m, snd m)
+            let tokens  = pchar ';' >>. sepBy token (pchar ';') 
+            let term    = 
+                // todo: some sort of soft caching
+                media .>>. opt ( tokens ) .>> eof 
+                |>> fun ((m,s),l) -> let level = ref 0
+                                     let cs : Ref<string> = ref null
+                                     let quality = ref 1.0f
+                                     if l.IsSome then
+                                         l.Value |> List.iter (fun (id,v) -> 
+                                                            match id with 
+                                                            | "Q" -> quality := Single.Parse(v)
+                                                            | "L" -> level := Int32.Parse(v)
+                                                            | "C" -> cs := v
+                                                            | _   -> ()
+                                                            // | _ -> tokens.Add (id, v) 
+                                                        )
+                                     { media = m; sub = s; quality = !quality; level = !level; 
+                                       charset = !cs; (*tokens = tokens :> _ seq;*) valueCache = 0 }
+
+            let parse (accept:string []) = 
+                let sort (l:AcceptHeaderInfo) (r:AcceptHeaderInfo) = 
+                    r.ValAsInt() - l.ValAsInt()
+                let values = 
+                    accept |> Array.map (fun ac -> 
+                                match run term ac with 
+                                | Success(result, _, _) -> result 
+                                | Failure(errorMsg, _, _) -> (raise(ArgumentException(errorMsg))))
+                values |> Array.sortInPlaceWith sort
+                values
+        end
+
+    //
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+    //
     [<System.ComponentModel.Composition.Export;AllowNullLiteral>]
     type ContentNegotiator() = 
-
-        let header_to_mime (acceptHeader:string []) = 
+        
+        (*
+        let normalize (acceptHeader:string []) = 
             if acceptHeader = null || acceptHeader.Length = 0 then
-                MimeType.Html
+                MediaTypes.Html
             else
                 let app, text  = 
                     acceptHeader
@@ -89,50 +192,98 @@ namespace Castle.MonoRail
                 if not (List.isEmpty app) then
                     let _, firstapp = app.Head 
                     match firstapp with 
-                    | "json" -> MimeType.JSon
-                    | "xml" -> MimeType.Xml
-                    | "atom+xml" -> MimeType.Atom
-                    | "rss+xml" -> MimeType.Rss
-                    | "javascript" | "js" -> MimeType.Js
-                    // | "soap+xml" -> MimeType.Js
-                    | "xhtml+xml" -> MimeType.Html
-                    | "x-www-form-urlencoded" -> MimeType.FormUrlEncoded
+                    | "json" -> MediaTypes.JSon
+                    | "xml" -> MediaTypes.Xml
+                    | "atom+xml" -> MediaTypes.Atom
+                    | "rss+xml" -> MediaTypes.Rss
+                    | "javascript" | "js" -> MediaTypes.Js
+                    | "soap+xml" -> MediaTypes.Soap
+                    | "xhtml+xml" -> MediaTypes.XHtml
+                    | "x-www-form-urlencoded" -> MediaTypes.FormUrlEncoded
                     // | "soap+xml" -> Js
-                    | _ -> MimeType.Unknown
+                    | _ -> null
                 elif not (List.isEmpty text) then
-                    // let tmp, firsttxt = text.Head 
                     match text.Head with 
-                    | _,"xml" -> MimeType.Xml
-                    | _,"html" -> MimeType.Html
-                    | _,"javascript" -> MimeType.Js
-                    | "multipart","form-data" -> MimeType.FormUrlEncoded // http://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
-                    | _ -> MimeType.Unknown
+                    | _,"xml" -> MediaTypes.Xml
+                    | _,"html" -> MediaTypes.Html
+                    | _,"javascript" -> MediaTypes.Js
+                    | "multipart","form-data" -> MediaTypes.FormUrlEncoded // http://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+                    | _ -> null
                     // csv
-                else 
-                    MimeType.Html
+                else MediaTypes.Html
+        *)
 
-        member x.ResolveContentType (contentType:string) = 
-            if String.IsNullOrEmpty contentType then raise (ArgumentNullException("contentType"))
-            match header_to_mime [|contentType|] with
-            | MimeType.Unknown -> failwith "Unknown format in content-type"  
-            | _ as mime -> mime
-
-        member x.ResolveRequestedMimeType (route:RouteMatch) (request:HttpRequestBase) = 
-            let r, format = route.RouteParams.TryGetValue "format"
-            if r then 
-                match format with
-                | "html" -> MimeType.Html
-                | "json" -> MimeType.JSon
-                | "rss" -> MimeType.Rss
-                | "js" -> MimeType.Js
-                | "atom" -> MimeType.Atom
-                | "xml" -> MimeType.Xml
-                | _ -> failwithf "Unknown format %s " format
+        member x.ResolveBestContentType (accept:string[], supportedMediaTypes:string[]) = 
+            if supportedMediaTypes = null || supportedMediaTypes.Length = 0 
+            then raise(ArgumentException("Must specify at least one supported media type", "supportedMediaTypes"))
+            // if not accept is sent, it's assumed it's */*
+            if accept = null || accept.Length = 0 then Seq.head supportedMediaTypes
             else 
-                let accept_header = request.AcceptTypes
-                match header_to_mime accept_header with
-                | MimeType.Unknown -> failwith "Unknown format in accept header"  
-                | _ as mime -> mime
+                let supportedReversed = supportedMediaTypes |> Array.rev
+                let find_best_compatible (accepts:AcceptHeaderParser.AcceptHeaderInfo[]) = 
+                    let table = 
+                        accepts 
+                        |> Array.collect (fun a -> supportedReversed |> Array.map (fun s -> a.Rate s, s)) 
+                        |> Array.filter (fun tup -> fst tup > 0)
+                    if Array.isEmpty table 
+                    then null
+                    else
+                        table |> Array.sortInPlaceBy (fun i -> -fst i)
+                        snd (Array.get table 0)
 
+                let parsedAccepts = AcceptHeaderParser.parse accept
+                find_best_compatible parsedAccepts
+
+        member x.ResolveBestContentType (overridingFormat:string, accept:string[], supportedMediaTypes:string[]) = 
+            // let r, format = route.RouteParams.TryGetValue "format"
+
+            let effectiveAccept : string[] = 
+                if not <| String.IsNullOrEmpty overridingFormat then 
+                    // todo: this should delegate to a service provided by the app, so it can be extended. 
+                    let acc = 
+                        match overridingFormat.ToLowerInvariant() with
+                        | "html" -> MediaTypes.Html
+                        | "json" -> MediaTypes.JSon
+                        | "rss"  -> MediaTypes.Rss
+                        | "js"   -> MediaTypes.Js
+                        | "atom" -> MediaTypes.Atom
+                        | "xml"  -> MediaTypes.Xml
+                        | _ -> failwithf "Unknown overriding format %s" overridingFormat
+                    [|acc|]
+                else accept
+
+            x.ResolveBestContentType (effectiveAccept, supportedMediaTypes)
 
         
+        member x.NormalizeRequestContentType (contentType:string) = 
+            if String.IsNullOrEmpty contentType then raise (ArgumentNullException("contentType"))
+            contentType
+            (*
+            TODO: is it worth the extra work to normalize it?
+            let media = acceptheader_to_mediatype [|contentType|] 
+            if media = null 
+            then contentType // possibly a custom format
+            else media
+            *)
+
+        (*
+        member x.ResolveRequestedMediaType (route:RouteMatch) (request:HttpRequestBase) = 
+            let r, format = route.RouteParams.TryGetValue "format"
+            if r then 
+                // todo: this should delegate to a service provided by the app, so it can be extended. 
+                match format with
+                | "html" -> MediaTypes.Html
+                | "json" -> MediaTypes.JSon
+                | "rss"  -> MediaTypes.Rss
+                | "js"   -> MediaTypes.Js
+                | "atom" -> MediaTypes.Atom
+                | "xml"  -> MediaTypes.Xml
+                | _ -> failwithf "Unknown format %s" format
+            else
+                let accept_header = request.AcceptTypes
+                let media = acceptheader_to_mediatype accept_header 
+                if media = null 
+                then failwith "Unknown format in accept header"  
+                else media
+
+        *)

@@ -1,42 +1,104 @@
 ﻿namespace Castle.MonoRail.Tests
 {
-	using FluentAssertions;
-	using NUnit.Framework;
+    using FluentAssertions;
+    using NUnit.Framework;
 
-	[TestFixture]
-	public class ContentNegotiatorTestCase
-	{
-		[Test, ExpectedException(ExpectedMessage = "Unknown format in content-type")]
-		public void InvalidContentTypes()
+    [TestFixture]
+    public class ContentNegotiatorTestCase
+    {
+		[Test]
+		public void QualityTest_WhenAllEqual_SelectFirst()
 		{
 			var negotiator = new ContentNegotiator();
-			negotiator.ResolveContentType("application/rrddff");
+			var mime = negotiator.ResolveBestContentType(
+						accept: new[] { "text/html", "text/plain", "app/xml" },
+						supportedMediaTypes: new[] { "text/html", "text/plain", "app/xml" });
+			mime.Should().Be("text/html");
 		}
 
 		[Test]
-		public void TypicalAppMimeTypes()
+		public void QualityTest_WithFactors_SelectsBest()
 		{
 			var negotiator = new ContentNegotiator();
-			negotiator.ResolveContentType("application/json").Should().Be(MimeType.JSon);
-			negotiator.ResolveContentType("application/xml").Should().Be(MimeType.Xml);
-			negotiator.ResolveContentType("application/atom+xml").Should().Be(MimeType.Atom);
-			negotiator.ResolveContentType("application/rss+xml").Should().Be(MimeType.Rss);
-			// negotiator.ResolveContentType("application/soap+xml").Should().Be(MimeType.);
-			negotiator.ResolveContentType("application/xhtml+xml").Should().Be(MimeType.Html);
-			negotiator.ResolveContentType("application/x-www-form-urlencoded").Should().Be(MimeType.FormUrlEncoded);
-			negotiator.ResolveContentType("application/javascript").Should().Be(MimeType.Js);
-			negotiator.ResolveContentType("application/js").Should().Be(MimeType.Js);
+			var mime = negotiator.ResolveBestContentType(
+						accept: new[] { "text/html;q=0.5", "text/plain;q=0.6", "app/xml;q=0.7" },
+						supportedMediaTypes: new[] { "text/html", "text/plain", "app/xml" });
+			mime.Should().Be("app/xml");
+
+			mime = negotiator.ResolveBestContentType(
+						accept: new[] { "text/html;q=0.5", "text/plain;q=0.6", "app/xml;q=0.7" },
+						supportedMediaTypes: new[] { "app/xml", "text/html", "text/plain" });
+			mime.Should().Be("app/xml");
+
+			mime = negotiator.ResolveBestContentType(
+						accept: new[] { "text/html;q=0.5", "text/plain;q=0.6", "app/xml;q=0.7" },
+						supportedMediaTypes: new[] { "text/html", "app/xml", "text/plain" });
+			mime.Should().Be("app/xml");
 		}
 
 		[Test]
-		public void OtherMimeTypes()
+		public void QualityTest_WithFactorsAndWildcards_SelectsBest()
 		{
 			var negotiator = new ContentNegotiator();
-			negotiator.ResolveContentType("multipart/form-data; boundary=----------------------------952e70d7bb94").Should().Be(MimeType.FormUrlEncoded);
-			negotiator.ResolveContentType("multipart/form-data").Should().Be(MimeType.FormUrlEncoded);
-			negotiator.ResolveContentType("text/javascript").Should().Be(MimeType.Js);
-			negotiator.ResolveContentType("text/html").Should().Be(MimeType.Html);
+			var mime = negotiator.ResolveBestContentType(
+						accept: new[] { "application/xml", "text/plain;q=0.9", "*/*;q=0.5" },
+						supportedMediaTypes: new[] { "text/html", "text/plain", "application/xml" });
+			mime.Should().Be("application/xml");
 
+			mime = negotiator.ResolveBestContentType(
+						accept: new[] { "application/xml", "text/plain;q=0.9", "*/*;q=0.5" },
+						supportedMediaTypes: new[] { "text/html", "text/plain" });
+			mime.Should().Be("text/plain");
+
+			mime = negotiator.ResolveBestContentType(
+						accept: new[] { "application/xml", "text/plain;q=0.9", "*/*;q=0.5" },
+						supportedMediaTypes: new[] { "text/html", "text/rdf" });
+			mime.Should().Be("text/html");
 		}
-	}
+
+        [Test]
+        public void QualityTest_ShouldSelectTextHtml()
+        {
+            var negotiator = new ContentNegotiator();
+            var mime = negotiator.ResolveBestContentType(
+                        accept: new[] { "text/*", "text/html", "text/html;level=1", "*/*" },
+						supportedMediaTypes: new[] { "text/html" });
+			mime.Should().Be("text/html");
+        }
+
+        /**
+        Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1,
+                text/html;level=2;q=0.4, * / *;q=0.5
+        would cause the following values to be associated:
+
+        text/html;level=1         = 1
+        text/html                 = 0.7
+        text/plain                = 0.3
+
+        image/jpeg                = 0.5
+        text/html;level=2         = 0.4
+        text/html;level=3         = 0.7
+         */
+        [Test]
+		public void QualityTest_ShouldSelectTextHtml2()
+        {
+			var negotiator = new ContentNegotiator();
+			var accept = "text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5".Split(new [] {','}, System.StringSplitOptions.RemoveEmptyEntries);
+			var mime = negotiator.ResolveBestContentType(
+						accept,
+						supportedMediaTypes: new[] { "text/html" });
+			mime.Should().Be("text/html");
+        }
+
+		[Test]
+		public void QualityTest_DenormalizingInputs()
+		{
+			var negotiator = new ContentNegotiator();
+			var accept = "application/atom+xml, application/atom-xml, text/*;q=0.3, text/html; q=0.7, text/html;level= 1, text/html;level=2;q = 0.4, */*;q =0.5, text/*;charset= utf-8".Split(new[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries);
+			negotiator.ResolveBestContentType(
+						accept,
+						supportedMediaTypes: new[] { "text/html" });
+		}
+
+    }
 }

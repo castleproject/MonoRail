@@ -54,7 +54,7 @@ namespace Castle.MonoRail
         inherit TargetUrl()
 
         let merge (newParams:IDictionary<string,string>) = 
-            if newParams != null then
+            if newParams <> null then
                 let dict = Dictionary<string,string>(parameters, StringComparer.OrdinalIgnoreCase)
                 for pair in newParams do
                     dict.[pair.Key] <- pair.Value

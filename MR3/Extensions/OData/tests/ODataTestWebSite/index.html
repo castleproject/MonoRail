@@ -1,0 +1,127 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>New Web Project</title>
+	<script src="datajs-1.0.2.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+</head>
+<body>
+	<script language="JavaScript">
+
+		function GetRepositories() {
+
+			OData.read(
+				"/models/RootModel/Repositories",
+				function (data) {
+					var html = "";
+
+					var repos = data.results;
+
+					for (var i = 0; i < repos.length; i++) {
+						html += "<div>" + repos[i].Name + "</div>";
+					}
+
+					$("#target-element-id").html(html);
+				}
+			);
+		}
+
+		function GetBranch() {
+
+		}
+
+		function AddRepository() {
+			var repoName = $("#txtRepoName").val();
+			OData.defaultHandler = OData.atomHandler;
+			OData.request(
+			  { requestUri: "/models/RootModel/Repositories",
+				method: "POST",
+				data: {
+					Id: 5,
+					Name: repoName
+				}
+			  },
+			  function (insertedItem) {
+				$("#divAddedRepo").html("<div>inserted customer ID: " + insertedItem.Id + "</div>");
+			  }, 
+				function (error) {
+					alert(error);
+				}
+			);
+		}
+
+		$(document).ready(function () {
+
+			OData.defaultHandler = OData.atomHandler;
+
+			$('#addbranch').click(function () {
+				var repoName = $("#txtRepoName").val();
+
+				OData.request(
+					{ requestUri: "/models/RootModel/Repositories(1)/Branches/",
+						method: "POST",
+						data: {
+							Id: 5,
+							Name: 'my branch'
+						}
+					},
+					function (insertedItem) {
+						alert('added branch successfully ' + insertedItem.Name);
+					},
+					function (error) {
+						alert(error);
+					});
+				});
+
+			$('#addRevision').click(function () {
+
+				OData.request(
+				{ requestUri: "/models/RootModel/Repositories(1)/Branches(100)/Revisions/",
+					method: "POST",
+					data: {
+						FileName: 'my branch',
+						UserId: 1992
+					}
+				},
+				function (insertedItem) {
+					alert('added revision successfully: ' + insertedItem.Id);
+				},
+				function (error) {
+					alert(error);
+				});
+			});
+				
+
+		});
+
+	
+	</script>
+	<div id="target-element-id">
+	</div>
+
+	<div>
+		<button id="btnGetRepos" onclick="GetRepositories()">
+			Get Repositories
+		</button>
+		
+		<button id="btnAddRepo" onclick="AddRepository()">
+			Add Repository
+		</button>
+		
+		<button id="addbranch" >
+			Add Branch
+		</button>
+
+		<button id="addRevision" >
+			Add Revision
+		</button>
+		
+		<input id="txtRepoName" type="text" />
+
+		<div id="divAddedRepo">
+		</div>
+	</div>
+</body>
+</html>

@@ -41,12 +41,17 @@
       <HintPath>..\..\..\..\tests\lib\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Newtonsoft.Json, Version=4.0.5.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\lib\Newtonsoft.Json.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\..\..\tests\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -56,7 +61,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstLinqTranslatorTestCase.cs" />
     <Compile Include="AtomServiceDocSerializerTestCase.cs" />
+    <Compile Include="QueryExpressionParserTestCase.cs" />
+    <Compile Include="QuerySemanticAnalysisTestCase.cs" />
+    <Compile Include="SegmentProcessorTestCase.Delete.cs" />
+    <Compile Include="SegmentProcessorTestCase.Update.cs" />
     <Compile Include="SegmentProcessorTestCase.EntityType.cs" />
     <Compile Include="SegmentProcessorTestCase.PropColl.cs" />
     <Compile Include="SegmentProcessorTestCase.PropSingle.cs" />
@@ -69,6 +79,7 @@
     <Compile Include="SegmentProcessorTestCase.ValueOperations.cs" />
     <Compile Include="SegmentParserTestCase.cs" />
     <Compile Include="Stubs\StubModel.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Castle.MonoRail\Castle.MonoRail.fsproj">
@@ -83,6 +94,20 @@
       <Project>{702F84E9-CAD2-4B64-A4C5-F915BAD4A729}</Project>
       <Name>Castle.MonoRail.Extension.OData</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="xsds\AnnotationSchema.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="xsds\atom.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsds\CSDLSchema_2.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

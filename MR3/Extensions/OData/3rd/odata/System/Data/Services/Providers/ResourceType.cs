@@ -39,10 +39,12 @@ namespace System.Data.Services.Providers
 #endif
 	{
 		#region Fields.
+
 		/// <summary>
 		/// Empty list of properties.
 		/// </summary>
-		internal static readonly ReadOnlyCollection<ResourceProperty> EmptyProperties = new ReadOnlyCollection<ResourceProperty>(new ResourceProperty[0]);
+		internal static readonly ReadOnlyCollection<ResourceProperty> EmptyProperties =
+			new ReadOnlyCollection<ResourceProperty>(new ResourceProperty[0]);
 
 		/// <summary>
 		/// ResourceTypeKind for the type that this structure represents.
@@ -128,9 +130,11 @@ namespace System.Data.Services.Providers
 		/// True if the EPM info was initialized for this type.
 		/// </summary>
 		private bool epmInfoInitialized;
+
 		#endregion Fields.
 
 		#region Constructors.
+
 		/// <summary>
 		/// Constructs a new instance of Astoria type using the specified clr type.
 		/// </summary>
@@ -160,7 +164,8 @@ namespace System.Data.Services.Providers
 			if (baseType != null && baseType.ResourceTypeKind != resourceTypeKind)
 			{
 				throw new ArgumentException(
-					Strings.ResourceType_InvalidResourceTypeKindInheritance(resourceTypeKind.ToString(), baseType.ResourceTypeKind.ToString()),
+					Strings.ResourceType_InvalidResourceTypeKindInheritance(resourceTypeKind.ToString(),
+					                                                        baseType.ResourceTypeKind.ToString()),
 					"resourceTypeKind");
 			}
 
@@ -238,19 +243,18 @@ namespace System.Data.Services.Providers
 				this.baseType = baseType;
 			}
 		}
+
 		#endregion Constructors.
 
 		#region Properties.
+
 		/// <summary>
 		/// True if the resource type includes a default stream.
 		/// </summary>
 		public bool IsMediaLinkEntry
 		{
 			[DebuggerStepThrough]
-			get
-			{
-				return this.isMediaLinkEntry;
-			}
+			get { return this.isMediaLinkEntry; }
 
 			set
 			{
@@ -296,27 +300,27 @@ namespace System.Data.Services.Providers
 		/// </summary>
 		public ReadOnlyCollection<ResourceProperty> Properties
 		{
-			get
-			{
-				return this.InitializeProperties();
-			}
+			get { return this.InitializeProperties(); }
 		}
 
 		/// <summary>
 		/// List of properties declared on this type.
 		/// </summary>
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("DataWeb.Usage", "AC0014:DoNotHandleProhibitedExceptionsRule", Justification = "always rethrows the exception")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("DataWeb.Usage", "AC0014:DoNotHandleProhibitedExceptionsRule",
+			Justification = "always rethrows the exception")]
 		public ReadOnlyCollection<ResourceProperty> PropertiesDeclaredOnThisType
 		{
 			get
 			{
-				ReadOnlyCollection<ResourceProperty> readOnlyProperties = this.propertiesDeclaredOnThisType as ReadOnlyCollection<ResourceProperty>;
+				ReadOnlyCollection<ResourceProperty> readOnlyProperties =
+					this.propertiesDeclaredOnThisType as ReadOnlyCollection<ResourceProperty>;
 				if (readOnlyProperties == null)
 				{
 					// This method will call the virtual method, if that's not been called yet and add the list of properties
 					// returned by the virtual method to the properties collection.
 					this.GetPropertiesDeclaredOnThisType();
-					readOnlyProperties = new ReadOnlyCollection<ResourceProperty>(this.propertiesDeclaredOnThisType ?? ResourceType.EmptyProperties);
+					readOnlyProperties =
+						new ReadOnlyCollection<ResourceProperty>(this.propertiesDeclaredOnThisType ?? ResourceType.EmptyProperties);
 
 					if (!this.isReadOnly)
 					{
@@ -397,7 +401,9 @@ namespace System.Data.Services.Providers
 			{
 				if (this.etagProperties == null)
 				{
-					ReadOnlyCollection<ResourceProperty> etag = new ReadOnlyCollection<ResourceProperty>(this.Properties.Where(p => p.IsOfKind(ResourcePropertyKind.ETag)).ToList());
+					ReadOnlyCollection<ResourceProperty> etag =
+						new ReadOnlyCollection<ResourceProperty>(
+							this.Properties.Where(p => p.IsOfKind(ResourcePropertyKind.ETag)).ToList());
 					if (!this.isReadOnly)
 					{
 						return etag;
@@ -449,10 +455,7 @@ namespace System.Data.Services.Providers
 		public bool IsOpenType
 		{
 			[DebuggerStepThrough]
-			get
-			{
-				return this.isOpenType;
-			}
+			get { return this.isOpenType; }
 
 			set
 			{
@@ -474,10 +477,7 @@ namespace System.Data.Services.Providers
 		public bool CanReflectOnInstanceType
 		{
 			[DebuggerStepThrough]
-			get
-			{
-				return this.canReflectOnInstanceType;
-			}
+			get { return this.canReflectOnInstanceType; }
 
 			set
 			{
@@ -491,15 +491,9 @@ namespace System.Data.Services.Providers
 		/// </summary>
 		public object CustomState
 		{
-			get
-			{
-				return this.GetCustomState();
-			}
+			get { return this.GetCustomState(); }
 
-			set
-			{
-				this.SetCustomState(value);
-			}
+			set { this.SetCustomState(value); }
 		}
 
 		/// <summary>
@@ -522,9 +516,11 @@ namespace System.Data.Services.Providers
 				return this.Properties.Where(p => p.IsOfKind(ResourcePropertyKind.Stream));
 			}
 		}
+
 		#endregion Properties.
 
 		#region Methods.
+
 		/// <summary>
 		/// Get a ResourceType representing a primitive type given a .NET System.Type object.
 		/// </summary>
@@ -550,7 +546,8 @@ namespace System.Data.Services.Providers
 		/// </summary>
 		/// <param name="itemType">The <see cref="ResourceType"/> of a single item in the multiValue.</param>
 		/// <returns>A <see cref="MultiValueResourceType"/> object representing a multiValue of the specified <paramref name="itemType"/> items.</returns>
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "MultiValue is a Name")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "MultiValue is a Name")
+		]
 		public static MultiValueResourceType GetMultiValueResourceType(ResourceType itemType)
 		{
 			ExceptionUtils.CheckArgumentNotNull(itemType, "itemType");
@@ -601,8 +598,8 @@ namespace System.Data.Services.Providers
 			epm.OwnEpmAttributes.Add(attribute);
 		}
 
-		public IEnumerable<EntityPropertyMappingAttribute> OwnEpmAttributes 
-		{ 
+		public IEnumerable<EntityPropertyMappingAttribute> OwnEpmAttributes
+		{
 			get
 			{
 				EpmResourceTypeAnnotation epm = this.Epm();
@@ -611,7 +608,7 @@ namespace System.Data.Services.Providers
 					return Enumerable.Empty<EntityPropertyMappingAttribute>();
 				}
 				return epm.OwnEpmAttributes;
-			} 
+			}
 		}
 
 		/// <summary>
@@ -784,7 +781,7 @@ namespace System.Data.Services.Providers
 		private static void CheckResourceTypeKind(ResourceTypeKind kind, string parameterName)
 		{
 			if (kind < ResourceTypeKind.EntityType ||
-				kind > ResourceTypeKind.MultiValue)
+			    kind > ResourceTypeKind.MultiValue)
 			{
 				throw new ArgumentException(Strings.General_InvalidEnumValue(kind.GetType().Name), parameterName);
 			}
@@ -848,7 +845,8 @@ namespace System.Data.Services.Providers
 			{
 				if (resourceProperty.Name == property.Name)
 				{
-					throw new InvalidOperationException(Strings.ResourceType_PropertyWithSameNameAlreadyExists(resourceProperty.Name, this.FullName));
+					throw new InvalidOperationException(Strings.ResourceType_PropertyWithSameNameAlreadyExists(resourceProperty.Name,
+					                                                                                           this.FullName));
 				}
 			}
 
@@ -862,7 +860,8 @@ namespace System.Data.Services.Providers
 				}
 
 				// NamedStream cannot be used as key or etag (you cannot create a property with a mixed flag that contains stream)
-				Debug.Assert(!property.IsOfKind(ResourcePropertyKind.Key) && !property.IsOfKind(ResourcePropertyKind.ETag), "NamedStream property kind must be used alone");
+				Debug.Assert(!property.IsOfKind(ResourcePropertyKind.Key) && !property.IsOfKind(ResourcePropertyKind.ETag),
+				             "NamedStream property kind must be used alone");
 				Debug.Assert(!property.CanReflectOnInstanceTypeProperty, "NamedStream properties must not be able to reflect");
 			}
 			else
@@ -879,9 +878,12 @@ namespace System.Data.Services.Providers
 						throw new InvalidOperationException(Strings.ResourceType_KeyPropertiesOnlyOnEntityTypes);
 					}
 
-					Debug.Assert(property.ResourceType.ResourceTypeKind == ResourceTypeKind.Primitive, "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
-					Debug.Assert(!property.IsOfKind(ResourcePropertyKind.ETag), "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
-					Debug.Assert(property.IsOfKind(ResourcePropertyKind.Primitive), "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(property.ResourceType.ResourceTypeKind == ResourceTypeKind.Primitive,
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(!property.IsOfKind(ResourcePropertyKind.ETag),
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(property.IsOfKind(ResourcePropertyKind.Primitive),
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
 				}
 
 				if (property.IsOfKind(ResourcePropertyKind.ETag))
@@ -891,12 +893,16 @@ namespace System.Data.Services.Providers
 						throw new InvalidOperationException(Strings.ResourceType_ETagPropertiesOnlyOnEntityTypes);
 					}
 
-					Debug.Assert(property.ResourceType.ResourceTypeKind == ResourceTypeKind.Primitive, "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
-					Debug.Assert(property.IsOfKind(ResourcePropertyKind.Primitive), "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
-					Debug.Assert(!property.IsOfKind(ResourcePropertyKind.Key), "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(property.ResourceType.ResourceTypeKind == ResourceTypeKind.Primitive,
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(property.IsOfKind(ResourcePropertyKind.Primitive),
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
+					Debug.Assert(!property.IsOfKind(ResourcePropertyKind.Key),
+					             "This check must have been done in ResourceProperty.ValidatePropertyParameters method");
 				}
 
-				Debug.Assert(property.ResourceType != GetPrimitiveResourceType(typeof(System.IO.Stream)), "Non NamedStream resource using Stream type");
+				Debug.Assert(property.ResourceType != GetPrimitiveResourceType(typeof (System.IO.Stream)),
+				             "Non NamedStream resource using Stream type");
 			}
 
 			this.propertiesDeclaredOnThisType.Add(property);
@@ -934,7 +940,8 @@ namespace System.Data.Services.Providers
 		/// </summary>
 		private void ValidateType()
 		{
-			Debug.Assert(this.isLoadPropertiesMethodCalled && this.IsReadOnly, "This method must be invoked only if LoadPropertiesDeclaredOnThisType has been called and the type is set to ReadOnly");
+			Debug.Assert(this.isLoadPropertiesMethodCalled && this.IsReadOnly,
+			             "This method must be invoked only if LoadPropertiesDeclaredOnThisType has been called and the type is set to ReadOnly");
 
 			if (this.BaseType != null)
 			{
@@ -1009,6 +1016,7 @@ namespace System.Data.Services.Providers
 				epm.EpmTargetTree.Validate();
 			}
 		}
+
 		#endregion Methods.
 	}
 }

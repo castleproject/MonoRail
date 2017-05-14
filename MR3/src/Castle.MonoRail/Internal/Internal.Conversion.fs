@@ -28,19 +28,19 @@ module Conversions
         match desiredType with
         | ptype when ptype = typeof<bool> ->
             // what shall we check for? '0'/'false' ?
-            if value != null then
+            if value <> null then
                 tmp <- Convert.ToBoolean(value.ToString()) :> obj
                 true, tmp
             else 
                 false, null
         | ptype when ptype.IsEnum ->
-            if value != null then 
+            if value <> null then 
                 tmp <- Enum.Parse(desiredType, value.ToString())
                 true, tmp
             else 
                 false, null
         | ptype when ptype = typeof<Decimal> ->
-            if value != null && value.ToString() == String.Empty then
+            if value <> null && value.ToString() = String.Empty then
                 true, box(0m)
             else
                 let parsed, rval = Decimal.TryParse(value.ToString(), NumberStyles.Any, System.Threading.Thread.CurrentThread.CurrentCulture)
@@ -49,14 +49,13 @@ module Conversions
                     if value.ToString().EndsWith("%") then
                         tmp <- (Decimal.Parse(value.ToString().Replace("%", "")) / 100m)
                         true, tmp
-                    else
-                        failwithf "Unsupported convertion type %O" desiredType
+                    else failwithf "Unsupported convertion type %O" desiredType
                 else
                     tmp <- rval
                     true, tmp
         | ptype when ptype = typeof<string> || typeof<IConvertible>.IsAssignableFrom(ptype) -> 
             
-            if value != null && value.ToString() == String.Empty then
+            if value != null && value.ToString() = String.Empty then
               match desiredType with
               | tp when tp = typeof<string> -> 
                  true, null
@@ -67,8 +66,8 @@ module Conversions
             else
                 tmp <- Convert.ChangeType(value, desiredType)
                 true, tmp
-        | ptype when ptype == typeof<Guid> ->
-            if value != null then 
+        | ptype when ptype = typeof<Guid> ->
+            if value <> null then 
                 tmp <- Guid.Parse(value.ToString())
                 true, tmp
             else 

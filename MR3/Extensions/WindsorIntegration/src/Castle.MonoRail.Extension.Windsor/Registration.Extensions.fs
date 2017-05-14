@@ -27,7 +27,7 @@ namespace Castle.MonoRail
         let private areaBuilder = AreaTypeDescriptorBuilderContributor() :> ITypeDescriptorBuilderContributor
 
         let internal get_controller_name (impl) = 
-            let descriptor = ControllerDescriptor(impl)
+            let descriptor = TypedControllerDescriptor(impl)
             areaBuilder.Process(impl, descriptor)
 
             if String.IsNullOrEmpty(descriptor.Area) 

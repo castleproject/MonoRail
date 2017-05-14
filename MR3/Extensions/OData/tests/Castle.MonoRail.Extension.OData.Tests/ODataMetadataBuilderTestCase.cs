@@ -25,7 +25,7 @@
 			result.Should().NotBeNull();
 			var resType = result.ElementAt(0);
 			resType.Should().NotBeNull();
-			resType.Name.Should().Be("name");
+			resType.Name.Should().Be("EntWithKey");
 			resType.Namespace.Should().Be("TestNamespace");
 			resType.ResourceTypeKind.Should().Be(ResourceTypeKind.EntityType);
 			resType.Properties.Count.Should().Be(1);
@@ -45,7 +45,7 @@
 			result.Should().NotBeNull();
 			var resType = result.ElementAt(0);
 			resType.Should().NotBeNull();
-			resType.Name.Should().Be("name");
+			resType.Name.Should().Be("EntWithPropsKey");
 			resType.Namespace.Should().Be("TestNamespace");
 			resType.ResourceTypeKind.Should().Be(ResourceTypeKind.EntityType);
 			resType.Properties.Count.Should().Be(4);
@@ -81,7 +81,7 @@
 			result.Should().NotBeNull();
 			var resType = result.ElementAt(0);
 			resType.Should().NotBeNull();
-			resType.Name.Should().Be("name");
+			resType.Name.Should().Be("EntWithPropsKey");
 			resType.Namespace.Should().Be("TestNamespace");
 			resType.ResourceTypeKind.Should().Be(ResourceTypeKind.EntityType);
 			resType.Properties.Count.Should().Be(4);
@@ -118,7 +118,7 @@
 			result.Should().NotBeNull();
 			var resType = result.ElementAt(0);
 			resType.Should().NotBeNull();
-			resType.Name.Should().Be("name");
+			resType.Name.Should().Be("EntWithComplexPropKey");
 			resType.Namespace.Should().Be("TestNamespace");
 			resType.ResourceTypeKind.Should().Be(ResourceTypeKind.EntityType);
 			resType.Properties.Count.Should().Be(2);
@@ -142,7 +142,6 @@
 			city.Kind.Should().Be(ResourcePropertyKind.Primitive);
 			city.ResourceType.InstanceType.Should().Be<string>();
 		}
-
 
 		[Test]
 		public void TwoEntitiesNotRelated_BuildsTwoResources()
@@ -171,9 +170,9 @@
 			result.Should().NotBeNull();
 			result.Count().Should().Be(2);
 
-			var productRT = result.FirstOrDefault(rt => rt.Name == "product");
+			var productRT = result.FirstOrDefault(rt => rt.Name == "Product1");
 			productRT.Should().NotBeNull();
-			var supplierRT = result.FirstOrDefault(rt => rt.Name == "supplier");
+			var supplierRT = result.FirstOrDefault(rt => rt.Name == "Supplier1");
 			supplierRT.Should().NotBeNull();
 			
 			var supplierProp = productRT.Properties.FirstOrDefault(p => p.Name == "Supplier");
@@ -195,9 +194,9 @@
 			result.Should().NotBeNull();
 			result.Count().Should().Be(2);
 
-			var productRT = result.FirstOrDefault(rt => rt.Name == "product");
+			var productRT = result.FirstOrDefault(rt => rt.Name == "Product2");
 			productRT.Should().NotBeNull();
-			var supplierRT = result.FirstOrDefault(rt => rt.Name == "supplier");
+			var supplierRT = result.FirstOrDefault(rt => rt.Name == "Supplier2");
 			supplierRT.Should().NotBeNull();
 
 			var productsProp = supplierRT.Properties.FirstOrDefault(p => p.Name == "Products");
@@ -219,9 +218,9 @@
 			result.Should().NotBeNull();
 			result.Count().Should().Be(2);
 
-			var productRT = result.FirstOrDefault(rt => rt.Name == "product");
+			var productRT = result.FirstOrDefault(rt => rt.Name == "Product3");
 			productRT.Should().NotBeNull();
-			var supplierRT = result.FirstOrDefault(rt => rt.Name == "supplier");
+			var supplierRT = result.FirstOrDefault(rt => rt.Name == "Supplier3");
 			supplierRT.Should().NotBeNull();
 
 			var productsProp = supplierRT.Properties.FirstOrDefault(p => p.Name == "Products");
@@ -246,7 +245,7 @@
 			addressRT.Should().NotBeNull();
 			addressRT.ResourceTypeKind.Should().Be(ResourceTypeKind.ComplexType);
 
-			var supplierRT = result.FirstOrDefault(rt => rt.Name == "supplier");
+			var supplierRT = result.FirstOrDefault(rt => rt.Name == "Supplier4");
 			supplierRT.Should().NotBeNull();
 
 			var productsProp = supplierRT.Properties.FirstOrDefault(p => p.Name == "Address");

@@ -42,35 +42,35 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test]
 		public void CreateSerializer_DefaultSerializers_AlwaysCreatesSerializerForJson()
 		{
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.JSon);
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.JSon);
 			Assert.IsNotNull(serializer);
 		}
 
 		[Test]
 		public void CreateSerializer_DefaultSerializers_AlwaysCreatesSerializerForXml()
 		{
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.Xml);
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.Xml);
 			Assert.IsNotNull(serializer);
 		}
 
 		[Test]
 		public void CreateSerializer_DefaultSerializers_AlwaysCreatesSerializerForFormData()
 		{
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.FormUrlEncoded);
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.FormUrlEncoded);
 			Assert.IsNotNull(serializer);
 		}
 
 		[Test, ExpectedException(typeof(MonoRailException))]
 		public void CreateSerializer_DefaultSerializers_NoSerializerForJS()
 		{
-			resolver.CreateSerializer<Customer>(MimeType.Js);
+			resolver.CreateSerializer<Customer>(MediaTypes.Js);
 		}
 
 		[Test]
 		public void Register_OfJsonSerializer_TakesPrecedenceOverDefault()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.JSon);
 			Assert.IsNotNull(serializer);
 			Assert.AreEqual(typeof(StubSerializer<Customer>), serializer.GetType());
 		}
@@ -78,8 +78,8 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test]
 		public void Register_OfJsonSerializer_TakesPrecedenceOverDefault_DiffSignature()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer(typeof(Customer), MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer(typeof(Customer), MediaTypes.JSon);
 			Assert.IsNotNull(serializer);
 			Assert.AreEqual(typeof(NonGenericSerializerAdapter), serializer.GetType());
 		}
@@ -87,8 +87,8 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test]
 		public void CreateSerializer_ForUntypedSerializer_ReturnsFunctionalAdapter()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer(typeof(Customer), MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer(typeof(Customer), MediaTypes.JSon);
 			var writer = new StringWriter();
 			serializer.Serialize(new Customer(), "application/json", writer, null);
 			writer.GetStringBuilder().ToString().Should().Be("hello");
@@ -97,8 +97,8 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test]
 		public void Register_OfJsSerializer_IsReturnedWhenRequested()
 		{
-			resolver.Register<Customer>(MimeType.Js, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.Js);
+			resolver.Register<Customer>(MediaTypes.Js, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.Js);
 			Assert.IsNotNull(serializer);
 			Assert.AreEqual(typeof(StubSerializer<Customer>), serializer.GetType());
 		}
@@ -106,19 +106,19 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test]
 		public void Register_OfSerializerForModel_DoesNotAffectOtherModel()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer<Customer>(MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer<Customer>(MediaTypes.JSon);
 			Assert.AreEqual(typeof(StubSerializer<Customer>), serializer.GetType());
 
-			var serializer2 = resolver.CreateSerializer<Supplier>(MimeType.JSon);
+			var serializer2 = resolver.CreateSerializer<Supplier>(MediaTypes.JSon);
 			Assert.AreNotEqual(typeof(StubSerializer<Customer>), serializer2.GetType());
 		}
 
 		[Test]
 		public void CreateSerializer_ForCollectionDefaultingToDefaultSerializer_UsesSpecificTypeSerializerIfExistent_SerializationCase()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer<IEnumerable<Customer>>(MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer<IEnumerable<Customer>>(MediaTypes.JSon);
 
 			var writer = new StringWriter();
 			serializer.Serialize(new[] { new Customer(), new Customer() }, "application/json", writer, new StubModelMetadataProvider(null));
@@ -129,8 +129,8 @@ namespace Castle.MonoRail.Tests.Serializers
 		[Test, Ignore("Recursive deserialization not impl for json")]
 		public void CreateSerializer_ForCollectionDefaultingToDefaultSerializer_UsesSpecificTypeSerializerIfExistent_DeserializationCase()
 		{
-			resolver.Register<Customer>(MimeType.JSon, typeof(StubSerializer<Customer>));
-			var serializer = resolver.CreateSerializer<IEnumerable<Customer>>(MimeType.JSon);
+			resolver.Register<Customer>(MediaTypes.JSon, typeof(StubSerializer<Customer>));
+			var serializer = resolver.CreateSerializer<IEnumerable<Customer>>(MediaTypes.JSon);
 
 			var context = new ModelSerializationContext(
 				new MemoryStream(Encoding.UTF8.GetBytes("[ {} ]")), new NameValueCollection());

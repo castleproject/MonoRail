@@ -34,8 +34,17 @@
     <OtherFlags>--keyfile:..\..\..\..\buildscripts\CastleKey.snk</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FParsec">
+      <HintPath>..\..\..\..\lib\FParsec.dll</HintPath>
+    </Reference>
+    <Reference Include="FParsecCS">
+      <HintPath>..\..\..\..\lib\FParsecCS.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition.CodePlex">
       <HintPath>..\..\..\..\lib\System.ComponentModel.Composition.Codeplex.dll</HintPath>
@@ -53,17 +62,24 @@
     <Compile Include="Internal.AssemblyInfo.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="ResourceMetadataBuilder.fs" />
-    <Compile Include="Api.fs" />
+    <Compile Include="ODataEntitySubController.fs" />
+    <Compile Include="ControllerActionOperation.fs" />
+    <Compile Include="ODataModel.fs" />
+    <Compile Include="QueryExpressionParser.fs" />
+    <Compile Include="QuerySemanticAnalysis.fs" />
     <Compile Include="SegmentParser.fs" />
     <Compile Include="Serialization\Serialization.fs" />
-    <Compile Include="Serialization\Serialization.Json.fs" />
     <Compile Include="Serialization\Serialization.PlainXml.fs" />
+    <Compile Include="Serialization\Serialization.Json.fs" />
     <Compile Include="Serialization\Serialization.Atom.fs" />
+    <Compile Include="Serialization\Serialization.PlainTextSerialization.fs" />
     <Compile Include="Serialization\Serialization.Metadata.fs" />
     <Compile Include="Serialization\Serialization.Factory.fs" />
+    <Compile Include="AstLinqTranslator.fs" />
     <Compile Include="SegmentProcessor.fs" />
     <Compile Include="ODataEntitySubControllerExecutor.fs" />
     <Compile Include="ODataController.fs" />
+    <Compile Include="Internal.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Castle.MonoRail\Castle.MonoRail.fsproj">

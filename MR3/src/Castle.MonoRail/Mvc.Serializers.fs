@@ -33,16 +33,16 @@ namespace Castle.MonoRail.Serialization
         let recursiveConverter (metadataProvider) (prefix) (context) = 
             { new JsonConverter() with 
                 override x.CanConvert(contract) = 
-                    resolver.HasCustomSerializer(contract, MimeType.JSon)
+                    resolver.HasCustomSerializer(contract, MediaTypes.JSon)
                 override x.WriteJson(writer, model, serializer) = 
-                    let s = resolver.CreateSerializer(model.GetType(), MimeType.JSon)
+                    let s = resolver.CreateSerializer(model.GetType(), MediaTypes.JSon)
                     use tempWriter = new StringWriter()
                     s.Serialize(model, contentType, tempWriter, metadataProvider)
                     writer.WriteRaw (tempWriter.GetStringBuilder().ToString())
                     
                 override x.ReadJson(reader, contract, model, serializer) = 
                     raise(NotImplementedException("ReadJson"))
-                    // let s = resolver.CreateSerializer(contract, MimeType.JSon)
+                    // let s = resolver.CreateSerializer(contract, MediaType.JSon)
                     // let v = reader.Value
                     // s.Deserialize (prefix, contentType, context, metadataProvider)
             }
@@ -93,7 +93,7 @@ namespace Castle.MonoRail.Serialization
             static member private regex = System.Text.RegularExpressions.Regex("\[[\w]+\]")
 
             member internal x.GetNode (name:string) = 
-                let node = x.children.Find (fun n -> n.key == name)
+                let node = x.children.Find (fun n -> n.key = name)
                 if node != null then 
                     node
                 else 
@@ -121,7 +121,7 @@ namespace Castle.MonoRail.Serialization
                 let modelMetadata = metadataProvider.Create(targetType)
                 let property = modelMetadata.GetProperty(nd.key)
 
-                if nd.children != null && nd.children.Count <> 0 then // [node][child] = value
+                if nd.children <> null && nd.children.Count <> 0 then // [node][child] = value
                     process_children property (modelMetadata.GetPropertyMetadata(property)) inst targetType nd metadataProvider
                 else                                                  // [node] = value
                     process_property property (modelMetadata.GetPropertyMetadata(property)) inst targetType nd metadataProvider
@@ -138,7 +138,7 @@ namespace Castle.MonoRail.Serialization
             let mutable childInst = null
 
             let isCollection = 
-                property.PropertyType != typeof<string> && 
+                property.PropertyType <> typeof<string> && 
                     property.PropertyType.IsGenericType && 
                     typedefof<IEnumerable<_>>.MakeGenericType( property.PropertyType.GetGenericArguments() )
                         .IsAssignableFrom(property.PropertyType) 
@@ -214,12 +214,12 @@ namespace Castle.MonoRail.Serialization
 
     [<Export(typeof<IModelSerializerResolver>)>]
     type ModelSerializerResolver() as self = 
-        let _custom = lazy Dictionary<Type,List<MimeType*Type>>()
+        let _custom = lazy Dictionary<Type,List<string*Type>>()
         let _defSerializers = lazy 
-                                   let dict = Dictionary<MimeType,Type>()
-                                   dict.Add (MimeType.JSon, typedefof<JsonSerializer<_>>)
-                                   dict.Add (MimeType.Xml, typedefof<XmlSerializer<_>>)
-                                   dict.Add (MimeType.FormUrlEncoded, typedefof<FormBasedSerializer<_>>)
+                                   let dict = Dictionary<string,Type>()
+                                   dict.Add (MediaTypes.JSon, typedefof<JsonSerializer<_>>)
+                                   dict.Add (MediaTypes.Xml, typedefof<XmlSerializer<_>>)
+                                   dict.Add (MediaTypes.FormUrlEncoded, typedefof<FormBasedSerializer<_>>)
                                    dict
 
         [<System.Security.SecuritySafeCriticalAttribute>]
@@ -250,7 +250,7 @@ namespace Castle.MonoRail.Serialization
                     let found = list |> Seq.tryFind (fun t -> (fst t) = mime)
                     if Option.isSome found then
                        serializerType <- snd found.Value
-            if serializerType == null then
+            if serializerType = null then
                 let dict = _defSerializers.Force()
                 let exists, tmpType = dict.TryGetValue mime
                 if exists then
@@ -271,17 +271,17 @@ namespace Castle.MonoRail.Serialization
 
         interface IModelSerializerResolver with
 
-            member x.HasCustomSerializer (model:Type, mime:MimeType) = 
+            member x.HasCustomSerializer (model:Type, mediaType:string) = 
                 let dict = _custom.Force()
                 let res, list = dict.TryGetValue model
                 if not res then 
                     false
                 else 
-                    match list |> Seq.tryFind (fun (m,_) -> m = mime) with 
+                    match list |> Seq.tryFind (fun (m,_) -> m = mediaType) with 
                     | Some _ -> true
                     | _ -> false
 
-            member x.Register<'a>(mime:MimeType, serializer:Type) = 
+            member x.Register<'a>(mediaType:string, serializer:Type) = 
                 arg_not_null serializer "serializer"
 
                 let modelType = typeof<'a>
@@ -289,26 +289,26 @@ namespace Castle.MonoRail.Serialization
                 let exists,list = dict.TryGetValue modelType
                 if not exists then
                     let list = List()
-                    list.Add (mime,serializer)
+                    list.Add (mediaType, serializer)
                     dict.[modelType] <- list
                 else
-                    let existing = list |> Seq.tryFindIndex (fun t -> (fst t) = mime)
+                    let existing = list |> Seq.tryFindIndex (fun t -> (fst t) === mediaType)
                     if existing.IsSome then
                         list.RemoveAt existing.Value
-                    list.Add (mime,serializer)
+                    list.Add (mediaType,serializer)
 
             // todo: memoization would be a good thing here, since serializers should be stateless
-            member x.CreateSerializer (modelType:Type, mime:MimeType) = 
+            member x.CreateSerializer (modelType:Type, mediaType:string) = 
                 arg_not_null modelType "modelType"
 
-                let serializer = resolve_serializer mime modelType
+                let serializer = resolve_serializer mediaType modelType
 
                 upcast NonGenericSerializerAdapter(serializer, modelType)
 
 
             // todo: memoization would be a good thing here, since serializers should be stateless
-            member x.CreateSerializer<'a>(mime:MimeType) : IModelSerializer<'a> = 
-                resolve_serializer mime typeof<'a> :?> IModelSerializer<'a>
+            member x.CreateSerializer<'a>(mediaType:string) : IModelSerializer<'a> = 
+                resolve_serializer mediaType typeof<'a> :?> IModelSerializer<'a>
 
                 
     and NonGenericSerializerAdapter(serializer, modelType) =

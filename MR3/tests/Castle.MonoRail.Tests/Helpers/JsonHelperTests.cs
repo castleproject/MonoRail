@@ -52,7 +52,7 @@ namespace Castle.MonoRail.Tests.Helpers
 		[Test]
 		public void ToJson_GraphWithCustomSerializer_SerializesToJson()
 		{
-			_resolver.Register<Customer>(MimeType.JSon, typeof(CustomCustomerSerializer));
+			_resolver.Register<Customer>(MediaTypes.JSon, typeof(CustomCustomerSerializer));
 
 			var model = new Customer() { Name = "hammett" };
 			var json = _jsonHelper.ToJson(model);

@@ -1,4 +1,18 @@
-﻿
+﻿//  Copyright 2004-2012 Castle Project - http://www.castleproject.org/
+//  Hamilton Verissimo de Oliveira and individual contributors as indicated. 
+//  See the committers.txt/contributors.txt in the distribution for a 
+//  full listing of individual contributors.
+// 
+//  This is free software; you can redistribute it and/or modify it
+//  under the terms of the GNU Lesser General Public License as
+//  published by the Free Software Foundation; either version 3 of
+//  the License, or (at your option) any later version.
+// 
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this software; if not, write to the Free
+//  Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
 namespace Castle.MonoRail
 
     open System
@@ -16,6 +30,7 @@ namespace Castle.MonoRail
             let mutable _containerName = containerName
 
             let _entities = List<EntitySetConfig>()
+            let _entSeq : EntitySetConfig seq = upcast _entities
 
             let _resourcetypes = lazy ( let rts = ResourceMetadataBuilder.build(_schemaNs, _entities) 
                                         rts |> Seq.iter (fun rt -> rt.SetReadOnly() )
@@ -23,7 +38,8 @@ namespace Castle.MonoRail
             
             let _resourcesets  = lazy ( _resourcetypes.Force() 
                                         |> Seq.filter (fun rt -> rt.ResourceTypeKind = ResourceTypeKind.EntityType && (_entities |> Seq.exists (fun e -> e.EntityName === rt.Name) ) )
-                                        |> Seq.map (fun rt -> (let rs = ResourceSet(rt.Name, rt)
+                                        |> Seq.map (fun rt -> (let name = (_entSeq |> Seq.find(fun e -> e.TargetType = rt.InstanceType)).EntitySetName 
+                                                               let rs = ResourceSet(name, rt)
                                                                rs.SetReadOnly()
                                                                rs ))
                                         |> box :?> ResourceSet seq)
@@ -32,14 +48,14 @@ namespace Castle.MonoRail
             member x.SchemaNamespace with get() = schemaNamespace
             member x.ContainerName   with get() = containerName
 
-            member x.EntitySet<'a>(entityName:string, source:IQueryable<'a>) = 
+            member x.EntitySet<'a>(entitySetName:string, source:IQueryable<'a>) = 
                 if _resourcesets.IsValueCreated then raise(InvalidOperationException("Model is frozen since ResourceSets were built"))
-                let cfg = EntitySetConfigurator(entityName, source)
+                let entityType = typeof<'a>
+                let cfg = EntitySetConfigurator(entitySetName, entityType.Name, source)
                 _entities.Add cfg
                 cfg
 
-            member x.Entities : EntitySetConfig seq = upcast _entities 
-
+            member x.Entities = _entSeq
             member internal x.ResourceSets  = _resourcesets.Force()
             member internal x.ResourceTypes = _resourcetypes.Force()
             member internal x.GetResourceType(name) = 
@@ -48,10 +64,13 @@ namespace Castle.MonoRail
             member internal x.GetResourceSet(name) = 
                 x.ResourceSets 
                 |> Seq.tryFind (fun rs -> StringComparer.OrdinalIgnoreCase.Equals( rs.Name, name ) )
-            member internal x.GetQueryable(name) = 
-                match _entities |> Seq.tryFind (fun e -> StringComparer.OrdinalIgnoreCase.Equals(e.EntityName, name)) with
+            member internal x.GetQueryable(rs:ResourceSet) = 
+                match _entities |> Seq.tryFind (fun e -> StringComparer.OrdinalIgnoreCase.Equals(e.EntitySetName, rs.Name)) with
                 | Some e -> e.Source
                 | _ -> null
+            member internal x.GetRelatedResourceSet(rt:ResourceType) =
+                x.ResourceSets 
+                |> Seq.tryFind (fun rs -> rs.ResourceType = rt )
 
             interface IDataServiceMetadataProvider with 
                 member x.ContainerNamespace = x.SchemaNamespace
